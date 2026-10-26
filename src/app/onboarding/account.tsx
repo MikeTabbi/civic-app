@@ -88,20 +88,21 @@ export default function Account() {
       <Screen style={{ gap: 18 }}>
         <StepHeader step={1} onBack={() => setStage('form')} />
         <T variant="title" style={{ marginTop: 12 }}>Check your email</T>
-        <T tone="muted">We sent a 6-digit code to {email.trim()}.</T>
+        <T tone="muted">We sent a code to {email.trim()}.</T>
         <TextField
           label="Code"
           value={code}
-          onChangeText={(v) => setCode(v.replace(/\D/g, '').slice(0, 6))}
+          onChangeText={(v) => setCode(v.replace(/\D/g, '').slice(0, 10))}
           keyboardType="number-pad"
           autoComplete="one-time-code"
           textContentType="oneTimeCode"
           placeholder="123456"
           error={serverError}
+          hint="Enter the code from your email."
         />
         <TextLink label="Send a new code" onPress={onContinue} />
         <View style={{ flex: 1 }} />
-        <Button label="Verify" onPress={onVerify} loading={busy} disabled={code.length !== 6} />
+        <Button label="Verify" onPress={onVerify} loading={busy} disabled={code.length < 6} />
       </Screen>
     );
   }

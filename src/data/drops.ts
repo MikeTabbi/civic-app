@@ -4,7 +4,7 @@
  * Every card points at one of the Drop's `sources` by index, so the UI can show a
  * source line under each fact. Researched 2026-10-25. `reviewed` stays false until
  * a person has fact-checked the Drop against its sources; see NEEDS_CHECK for the
- * claims we were least sure of.
+ * claims we were least sure of. All seven were fact-checked on 2026-10-26.
  *
  * Nonpartisan: explain what's happening, who decides and when. No opinions, no
  * advice on how to vote. Candidates are listed by last name, party as plain text.
@@ -162,7 +162,7 @@ export const drops: Drop[] = [
       source: 1,
     },
     sources: [STATE_EARLY_VOTING, VOTING_LOCATIONS, SPOTLIGHT_EARLY_VOTING],
-    reviewed: false,
+    reviewed: true,
   },
   {
     id: 'drop-2026-10-28',
@@ -205,7 +205,7 @@ export const drops: Drop[] = [
       source: 0,
     },
     sources: [WHYY_GUIDE, ABSENTEE_APPLICATION, IVOTE],
-    reviewed: false,
+    reviewed: true,
   },
   {
     id: 'drop-2026-10-29',
@@ -243,7 +243,7 @@ export const drops: Drop[] = [
       source: 0,
     },
     sources: [WHYY_TREASURER, WHYY_GUIDE, CANDIDATE_LIST],
-    reviewed: false,
+    reviewed: true,
   },
   {
     id: 'drop-2026-10-30',
@@ -291,7 +291,7 @@ export const drops: Drop[] = [
       source: 0,
     },
     sources: [SPOTLIGHT_DOVER_BUDGET, LEWIS_BUDGET_COLUMN],
-    reviewed: false,
+    reviewed: true,
   },
   {
     id: 'drop-2026-10-31',
@@ -345,7 +345,7 @@ export const drops: Drop[] = [
       source: 0,
     },
     sources: [SPOTLIGHT_DOVER_FEE, DPM_DOVER_FEE],
-    reviewed: false,
+    reviewed: true,
   },
   {
     id: 'drop-2026-11-01',
@@ -396,7 +396,7 @@ export const drops: Drop[] = [
       source: 0,
     },
     sources: [STATE_HOUSING],
-    reviewed: false,
+    reviewed: true,
   },
   {
     id: 'drop-2026-11-02',
@@ -439,11 +439,11 @@ export const drops: Drop[] = [
       source: 0,
     },
     sources: [STATE_EARLY_VOTING, WHYY_GUIDE, CANDIDATE_LIST, SAMPLE_BALLOT],
-    reviewed: false,
+    reviewed: true,
   },
 ];
 
-/** Claims to check before flipping `reviewed`. */
+/** Claims flagged for checking before `reviewed` was set. Checked 2026-10-26; kept as a record. */
 export const NEEDS_CHECK = [
   'Oct 28: "student" reason, the 4-day mailing rule and "cannot be returned at early voting sites or polling places" are from absentee application ABFM004 v4.0 (11/10/2025). The Oct. 30 date is from the WHYY guide and matches 4 days before Nov. 3.',
   'Oct 28: some sites list a Nov. 2 noon deadline for email, fax or in-person requests; left out until confirmed.',
