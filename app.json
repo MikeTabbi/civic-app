@@ -34,6 +34,13 @@
             "backgroundColor": "#252422"
           }
         }
+      ],
+      "expo-web-browser",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Your location is used once to find your voting districts. It is never shown on your profile."
+        }
       ]
     ],
     "experiments": {

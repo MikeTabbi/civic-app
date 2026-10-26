@@ -1,9 +1,11 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
-import { Button, Notice, Screen, StepHeader, T, TextField, TextLink } from '@/components/ui';
-import { accountsEnabled, sendEmailCode, verifyEmailCode } from '@/lib/auth';
+
+import { SocialSignIn } from '@/components/SocialSignIn';
+import { Button, Notice, Row, Screen, StepHeader, T, TextField, TextLink } from '@/components/ui';
+import { accountsEnabled, currentUser, sendEmailCode, signOut, verifyEmailCode, type SignedInUser } from '@/lib/auth';
 import { EMAIL_RE, HANDLE_RE, isEduEmail, useProfile } from '@/state/ProfileProvider';
 import { useTheme } from '@/theme/ThemeProvider';
 import { radius } from '@/theme/tokens';
@@ -26,6 +28,18 @@ export default function Account() {
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [signedIn, setSignedIn] = useState<SignedInUser | null>(null);
+
+  useEffect(() => {
+    currentUser().then((u) => u && onSignedIn(u)).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const onSignedIn = (u: SignedInUser) => {
+    setSignedIn(u);
+    if (u.email) setEmail(u.email);
+    if (u.name) setName((n) => n || u.name!);
+  };
 
   const cleanHandle = handle.trim().toLowerCase().replace(/^@/, '');
   const errors = {
@@ -52,7 +66,7 @@ export default function Account() {
     setShowErrors(true);
     if (!valid) return;
     save();
-    if (!accountsEnabled) return router.push('/onboarding/location');
+    if (!accountsEnabled || signedIn) return router.push('/onboarding/location');
     setBusy(true);
     setServerError(null);
     const res = await sendEmailCode(email.trim().toLowerCase());
@@ -99,6 +113,24 @@ export default function Account() {
       <T variant="title" style={{ marginTop: 8 }}>Make your profile</T>
       <T tone="muted">Your name and handle are public. Your email stays private.</T>
 
+      {signedIn ? (
+        <Notice tone="good">
+          <Row style={{ justifyContent: 'space-between' }}>
+            <T variant="label" style={{ flex: 1 }}>Signed in as {signedIn.email ?? 'your account'}</T>
+            <TextLink
+              label="Switch"
+              onPress={async () => {
+                await signOut();
+                setSignedIn(null);
+              }}
+            />
+          </Row>
+          <T variant="caption" tone="muted">Pick a handle to finish your profile.</T>
+        </Notice>
+      ) : (
+        <SocialSignIn onSignedIn={onSignedIn} />
+      )}
+
       <TextField label="First name" value={name} onChangeText={setName} placeholder="Jordan" autoComplete="given-name" error={showErrors ? errors.name : null} />
       <TextField
         label="Handle"
@@ -114,6 +146,7 @@ export default function Account() {
         label="Email"
         value={email}
         onChangeText={setEmail}
+        editable={!signedIn}
         placeholder="you@email.com"
         keyboardType="email-address"
         autoCapitalize="none"

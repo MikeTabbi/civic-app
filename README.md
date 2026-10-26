@@ -33,7 +33,7 @@ The app runs on mock data (`src/data/mock.ts`) until Supabase is connected:
 cp .env.example .env   # add your Supabase URL + anon key
 ```
 
-To set up the database, create a Supabase project, then run `supabase/migrations/20261025000000_phase1_init.sql` in the SQL editor, or use `supabase db push` with the Supabase CLI.
+To turn on accounts (email codes, Apple, Google), follow [docs/auth-setup.md](docs/auth-setup.md). To set up the database, create a Supabase project, then run `supabase/migrations/20261025000000_phase1_init.sql` in the SQL editor, or use `supabase db push` with the Supabase CLI.
 
 Checks:
 
@@ -82,7 +82,8 @@ Screens follow the **v8 Orange** prototype. Light and dark modes follow the syst
 ## Data sources (planned)
 
 - **Delaware Department of Elections:** election dates, deadlines, ballots
-- **U.S. Census Geocoder:** address → districts
+- **U.S. Census Geocoder:** address or map point → districts (live)
+- **Photon (OpenStreetMap):** address suggestions while typing (live; swap for a paid provider at launch)
 - **Open congressional data:** federal officials
 - **OpenStates:** state legislators (free API key)
 - **City council and school board:** entered by hand at first
