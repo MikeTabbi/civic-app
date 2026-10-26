@@ -6,10 +6,12 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { AuthProvider, useAuth } from '@/state/AuthProvider';
 import { BallotProvider, useBallot } from '@/state/BallotProvider';
 import { DropProvider, useDrops } from '@/state/DropProvider';
 import { FollowProvider, useFollows } from '@/state/FollowProvider';
 import { ProfileProvider, useProfile } from '@/state/ProfileProvider';
+import { SquadProvider } from '@/state/SquadProvider';
 import { StreakProvider, useStreak } from '@/state/StreakProvider';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 
@@ -28,17 +30,21 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <ProfileProvider>
-          <BallotProvider>
-            <FollowProvider>
-              <StreakProvider>
-                <DropProvider>
-                  <RootStack fontsLoaded={fontsLoaded} />
-                </DropProvider>
-              </StreakProvider>
-            </FollowProvider>
-          </BallotProvider>
-        </ProfileProvider>
+        <AuthProvider>
+          <ProfileProvider>
+            <BallotProvider>
+              <FollowProvider>
+                <StreakProvider>
+                  <DropProvider>
+                    <SquadProvider>
+                      <RootStack fontsLoaded={fontsLoaded} />
+                    </SquadProvider>
+                  </DropProvider>
+                </StreakProvider>
+              </FollowProvider>
+            </BallotProvider>
+          </ProfileProvider>
+        </AuthProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );
@@ -46,13 +52,14 @@ export default function RootLayout() {
 
 function RootStack({ fontsLoaded }: { fontsLoaded: boolean }) {
   const { t } = useTheme();
+  const auth = useAuth();
   const { ready, profile } = useProfile();
   const ballot = useBallot();
   const follows = useFollows();
   const streak = useStreak();
   const drops = useDrops();
   const onboarded = profile.onboarded;
-  const loaded = fontsLoaded && ready && ballot.ready && follows.ready && streak.ready && drops.ready;
+  const loaded = fontsLoaded && auth.ready && ready && ballot.ready && follows.ready && streak.ready && drops.ready;
 
   useEffect(() => {
     if (loaded) SplashScreen.hideAsync().catch(() => {});
@@ -73,10 +80,13 @@ function RootStack({ fontsLoaded }: { fontsLoaded: boolean }) {
           <Stack.Screen name="official/[id]" />
           <Stack.Screen name="plan" />
           <Stack.Screen name="address" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="sign-in" options={{ presentation: 'modal' }} />
         </Stack.Protected>
         <Stack.Protected guard={!onboarded}>
           <Stack.Screen name="onboarding" />
         </Stack.Protected>
+        {/* Invite links work before setup too; the screen saves the code for later. */}
+        <Stack.Screen name="join/[code]" />
       </Stack>
     </>
   );

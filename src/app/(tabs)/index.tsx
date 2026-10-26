@@ -1,13 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
 import { Linking, Pressable, View } from 'react-native';
 
 import { Button, Card, Notice, ProgressBar, Row, Screen, SourceTag, T, TextLink } from '@/components/ui';
 import { levelLabel, racesForDistricts, type Race, type RaceLevel } from '@/data/ballot2026';
 import { generalElection2026 as E, IVOTE_URL, SAMPLE_BALLOT_URL, VOTING_LOCATIONS_URL, daysUntil, parseLocalDate } from '@/data/delaware';
-import { formatDay, formatTime, methodLabel, planSteps } from '@/lib/votingPlan';
+import { formatDay, formatTime, hasCompletePlan, methodLabel, planSteps } from '@/lib/votingPlan';
 import { useBallot } from '@/state/BallotProvider';
 import { useProfile } from '@/state/ProfileProvider';
+import { useSquads } from '@/state/SquadProvider';
 import { useTheme } from '@/theme/ThemeProvider';
 import { radius } from '@/theme/tokens';
 
@@ -86,6 +88,7 @@ export default function Ballot() {
         </Card>
       ) : null}
 
+      <SquadNudge />
       <PlanCard />
 
       {deadlines.length ? (
@@ -135,6 +138,25 @@ export default function Ballot() {
   );
 }
 
+/** "Your squad nudged you": shown until the person's own plan is done. */
+function SquadNudge() {
+  const { nudge, refresh } = useSquads();
+  const { plan } = useBallot();
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh]),
+  );
+  if (!nudge || hasCompletePlan(plan)) return null;
+  return (
+    <Notice tone="warn">
+      <T variant="label">Your squad nudged you to make a plan</T>
+      <T variant="caption" tone="muted">From {nudge.squadName}. It takes about a minute.</T>
+      <TextLink label="Make my plan" onPress={() => router.push('/plan')} />
+    </Notice>
+  );
+}
+
 function PlanCard() {
   const { t } = useTheme();
   const { plan } = useBallot();
@@ -175,7 +197,9 @@ function PlanCard() {
               </View>
             ))}
           </Row>
-          <T variant="caption" tone="faint">Private. Only you can see your plan.</T>
+          <T variant="caption" tone="faint">
+            {plan.shareWithSquad ? 'Private. Your squads only see whether you have a plan.' : 'Private. Only you can see your plan.'}
+          </T>
         </Card>
       )}
     </Pressable>

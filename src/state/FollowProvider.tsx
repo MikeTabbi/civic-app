@@ -12,6 +12,8 @@ type Ctx = {
   following: Record<string, string>;
   isFollowing: (officialId: string) => boolean;
   toggleFollow: (officialId: string) => void;
+  /** Clears follows from this device (sign-out). */
+  reset: () => void;
 };
 
 const KEY = 'follows.v1';
@@ -42,7 +44,15 @@ export function FollowProvider({ children }: { children: ReactNode }) {
 
   const isFollowing = useCallback((officialId: string) => !!following[officialId], [following]);
 
-  const value = useMemo(() => ({ ready, following, isFollowing, toggleFollow }), [ready, following, isFollowing, toggleFollow]);
+  const reset = useCallback(() => {
+    setFollowing({});
+    AsyncStorage.removeItem(KEY).catch(() => {});
+  }, []);
+
+  const value = useMemo(
+    () => ({ ready, following, isFollowing, toggleFollow, reset }),
+    [ready, following, isFollowing, toggleFollow, reset],
+  );
   return <FollowContext.Provider value={value}>{children}</FollowContext.Provider>;
 }
 

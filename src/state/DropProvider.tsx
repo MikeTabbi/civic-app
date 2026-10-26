@@ -23,6 +23,8 @@ type Ctx = Saved & {
   toggleSaved: (dropId: string) => void;
   answer: (dropId: string, choice: number) => void;
   ask: (dropId: string, text: string) => void;
+  /** Clears saves, answers and questions from this device (sign-out). */
+  reset: () => void;
 };
 
 const KEY = 'drops.v1';
@@ -78,7 +80,15 @@ export function DropProvider({ children }: { children: ReactNode }) {
 
   const isSaved = useCallback((dropId: string) => !!state.saved[dropId], [state]);
 
-  const value = useMemo(() => ({ ready, ...state, isSaved, toggleSaved, answer, ask }), [ready, state, isSaved, toggleSaved, answer, ask]);
+  const reset = useCallback(() => {
+    setState(empty);
+    AsyncStorage.removeItem(KEY).catch(() => {});
+  }, []);
+
+  const value = useMemo(
+    () => ({ ready, ...state, isSaved, toggleSaved, answer, ask, reset }),
+    [ready, state, isSaved, toggleSaved, answer, ask, reset],
+  );
   return <DropContext.Provider value={value}>{children}</DropContext.Provider>;
 }
 

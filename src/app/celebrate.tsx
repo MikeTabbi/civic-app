@@ -2,10 +2,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { View } from 'react-native';
 
-import { Button, Card, ProgressBar, Row, Screen, T } from '@/components/ui';
+import { Button, Card, ProgressBar, Row, Screen, T, ToggleRow } from '@/components/ui';
 import { drops } from '@/data/drops';
 import { BADGE_NAMES, MILESTONES, type Milestone } from '@/lib/streak';
 import { useNow } from '@/lib/useNow';
+import { useAuth } from '@/state/AuthProvider';
 import { useStreak } from '@/state/StreakProvider';
 import { useTheme } from '@/theme/ThemeProvider';
 import { radius } from '@/theme/tokens';
@@ -17,13 +18,15 @@ const needsMoreDrops = (m: Milestone) => m > drops.length;
 export default function Celebrate() {
   const { t } = useTheme();
   const { badge: badgeParam } = useLocalSearchParams<{ badge?: string }>();
-  const stats = useStreak().statsOn(useNow());
+  const streak = useStreak();
+  const stats = streak.statsOn(useNow());
+  const signedIn = !!useAuth().user;
   const badge = MILESTONES.find((m) => String(m) === badgeParam) ?? stats.badges[stats.badges.length - 1] ?? null;
   const days = stats.current;
   const next = stats.next;
 
   return (
-    <Screen scroll={false} style={{ alignItems: 'stretch', gap: 16 }}>
+    <Screen style={{ alignItems: 'stretch', gap: 16 }}>
       <View style={{ alignItems: 'center', marginTop: 24, gap: 14 }}>
         <View
           accessibilityLabel={`${days} day streak`}
@@ -97,7 +100,16 @@ export default function Celebrate() {
         })}
       </Row>
 
-      {/* TODO(DSU rank): hidden until there's a backend. Needs a server-side streak table and a rank function. */}
+      <ToggleRow
+        title="Show my streak on leaderboards"
+        subtitle={
+          signedIn
+            ? 'Only your handle and streak. Never your voter status or quiz answers.'
+            : 'Sign in from the Squad tab to appear. Never your voter status or quiz answers.'
+        }
+        value={streak.onLeaderboard}
+        onValueChange={streak.setOnLeaderboard}
+      />
 
       <View style={{ flex: 1 }} />
       <Button label="Keep it going" onPress={() => router.dismissTo('/')} />

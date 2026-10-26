@@ -85,3 +85,6 @@ export function planSteps(plan: VotingPlan) {
     { id: 'when', label: plan.day && plan.time ? `${formatDay(plan.day)}, ${formatTime(plan.time)}` : 'When', done: !!plan.day && !!plan.time },
   ];
 }
+
+/** Every step done. This yes/no is the only part of the plan a squad can ever see. */
+export const hasCompletePlan = (plan: VotingPlan) => planSteps(plan).every((s) => s.done);

@@ -45,3 +45,6 @@ supabase/.temp/
 .DS_Store
 .vscode/
 .idea/
+
+# Local-only secrets (Supabase service key for scripts/dev). Never imported by the app.
+.secrets/

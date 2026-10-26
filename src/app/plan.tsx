@@ -54,7 +54,7 @@ export default function Plan() {
         <IconButton icon="chevron-back" label="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
       </Row>
       <T variant="title">Your voting plan</T>
-      <T tone="muted">Private. Your plan is saved on this phone and never shown on your profile or to your squad.</T>
+      <T tone="muted">Private. Your plan is saved on this phone and never shown on your profile. Squads can only see whether you have a plan, and only if you turn that on.</T>
 
       <Step n={1} title="Are you registered?" done={plan.registered}>
         <T variant="caption" tone="muted">
@@ -130,6 +130,15 @@ export default function Plan() {
           </Row>
         ) : null}
       </Step>
+
+      <Card>
+        <ToggleRow
+          title="Share my plan status with my squads"
+          subtitle="Squads see only a yes or no for whether you have a plan. Never how, where or when you vote."
+          value={plan.shareWithSquad}
+          onValueChange={(v) => change({ shareWithSquad: v })}
+        />
+      </Card>
 
       <Button label="Done" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
     </Screen>

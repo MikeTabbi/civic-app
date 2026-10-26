@@ -1,12 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
+import { upsertProfile } from '@/lib/cloud';
 import type { Districts } from '@/lib/geocode';
+import { useAuth } from '@/state/AuthProvider';
 
 /**
  * The signed-in person's profile and setup choices, saved on the device.
- * When Supabase is connected, `profile` is mirrored to the `profiles` table
- * (public parts) and `addresses` / `user_districts` (private parts).
+ * When signed in, the public parts (handle, name, school, is_public) are kept
+ * in sync with the `profiles` table. The address stays on the device.
  */
 
 export type VotingLocation = 'campus' | 'home';
@@ -58,6 +60,8 @@ type Ctx = {
   profile: Profile;
   update: (patch: Partial<Profile>) => void;
   reset: () => void;
+  /** Upserts the public profile now. The account step uses it to catch a taken handle. */
+  syncProfile: (p: Pick<Profile, 'handle' | 'name' | 'school' | 'isPublic'>) => ReturnType<typeof upsertProfile>;
 };
 
 const KEY = 'profile.v1';
@@ -66,6 +70,7 @@ const ProfileContext = createContext<Ctx | null>(null);
 export function ProfileProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [profile, setProfile] = useState<Profile>(emptyProfile);
+  const userId = useAuth().user?.id ?? null;
 
   useEffect(() => {
     AsyncStorage.getItem(KEY)
@@ -89,7 +94,20 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     AsyncStorage.removeItem(KEY).catch(() => {});
   }, []);
 
-  const value = useMemo(() => ({ ready, profile, update, reset }), [ready, profile, update, reset]);
+  const syncProfile = useCallback(
+    (p: Pick<Profile, 'handle' | 'name' | 'school' | 'isPublic'>) =>
+      upsertProfile({ handle: p.handle, name: p.name, school: p.school, isPublic: p.isPublic }),
+    [],
+  );
+
+  // Background sync after sign-in and on later edits. Errors (like a taken handle) surface on the account step.
+  const { handle, name, school, isPublic } = profile;
+  useEffect(() => {
+    if (!ready || !userId || !HANDLE_RE.test(handle)) return;
+    syncProfile({ handle, name, school, isPublic }).catch(() => {});
+  }, [ready, userId, handle, name, school, isPublic, syncProfile]);
+
+  const value = useMemo(() => ({ ready, profile, update, reset, syncProfile }), [ready, profile, update, reset, syncProfile]);
   return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>;
 }
 

@@ -74,3 +74,9 @@ export async function syncReminders(prefs: ReminderPrefs, plan?: VotingPlan) {
   }
   return list.length;
 }
+
+/** Cancels every scheduled reminder (used on sign-out, since they include the plan time). */
+export async function clearReminders() {
+  if (Platform.OS === 'web') return;
+  await Notifications.cancelAllScheduledNotificationsAsync();
+}

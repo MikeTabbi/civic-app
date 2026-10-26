@@ -18,7 +18,7 @@ export type OAuthProvider = 'apple' | 'google';
 
 export type SignedInUser = { id: string; email: string | null; name: string | null };
 
-function toUser(u: { id: string; email?: string | null; user_metadata?: Record<string, unknown> } | null | undefined): SignedInUser | null {
+export function toUser(u: { id: string; email?: string | null; user_metadata?: Record<string, unknown> } | null | undefined): SignedInUser | null {
   if (!u) return null;
   const m = u.user_metadata ?? {};
   const full = (m.full_name ?? m.name ?? m.given_name ?? null) as string | null;

@@ -25,10 +25,10 @@ export type GeocodeResult = { ok: true; districts: Districts } | { ok: false; re
 /** Human-readable rows for showing someone their districts. */
 export function districtLines(d: Districts) {
   return [
-    { label: 'U.S. House', value: d.congressional === 'AL' ? 'At-large (all of Delaware)' : d.congressional ? `District ${d.congressional}` : '—' },
-    { label: 'State Senate', value: d.stateSenate ? `District ${d.stateSenate}` : '—' },
-    { label: 'State House', value: d.stateHouse ? `District ${d.stateHouse}` : '—' },
-    { label: 'County', value: d.county ? `${d.county} County` : '—' },
+    { label: 'U.S. House', value: d.congressional === 'AL' ? 'At-large (all of Delaware)' : d.congressional ? `District ${d.congressional}` : 'Not found' },
+    { label: 'State Senate', value: d.stateSenate ? `District ${d.stateSenate}` : 'Not found' },
+    { label: 'State House', value: d.stateHouse ? `District ${d.stateHouse}` : 'Not found' },
+    { label: 'County', value: d.county ? `${d.county} County` : 'Not found' },
     { label: 'City', value: d.place ?? 'Unincorporated area' },
   ];
 }
