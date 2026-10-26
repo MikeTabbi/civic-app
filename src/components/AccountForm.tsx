@@ -35,6 +35,8 @@ export function AccountForm({ mode = 'onboarding', onDone }: { mode?: 'onboardin
   const [serverError, setServerError] = useState<string | null>(null);
   const [signedIn, setSignedIn] = useState<SignedInUser | null>(null);
   const [handleTaken, setHandleTaken] = useState(false);
+  /** Dev only: the email didn't send, but a code from scripts/dev/create-test-user.mjs still works. */
+  const [devSendError, setDevSendError] = useState<string | null>(null);
   const signOutAndClear = useSignOut();
 
   const onSignedIn = (u: SignedInUser) => {
@@ -89,7 +91,8 @@ export function AccountForm({ mode = 'onboarding', onDone }: { mode?: 'onboardin
     setServerError(null);
     const res = await sendEmailCode(email.trim().toLowerCase());
     setBusy(false);
-    if (!res.ok) return setServerError(res.message);
+    if (!res.ok && !__DEV__) return setServerError(res.message);
+    setDevSendError(res.ok ? null : res.message);
     setStage('code');
   };
 
@@ -123,7 +126,14 @@ export function AccountForm({ mode = 'onboarding', onDone }: { mode?: 'onboardin
           </Row>
         )}
         <T variant="title" style={{ marginTop: 12 }}>Check your email</T>
-        <T tone="muted">We sent a code to {email.trim()}.</T>
+        {devSendError ? (
+          <Notice tone="warn">
+            <T variant="caption">Dev build: the email didn't send ({devSendError}).</T>
+            <T variant="caption" tone="muted">Get a code with scripts/dev/create-test-user.mjs and enter it here.</T>
+          </Notice>
+        ) : (
+          <T tone="muted">We sent a code to {email.trim()}.</T>
+        )}
         <TextField
           label="Code"
           value={code}
