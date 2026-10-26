@@ -5,10 +5,21 @@ import { KeyboardAvoidingView, Linking, Modal, Platform, Pressable, ScrollView, 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button, Notice, SourceTag, T, TextField } from '@/components/ui';
-import { dropDateLabel, dropForDate, drops, localDateKey, type Drop as DropData, type WhoDecides } from '@/data/drops';
+import {
+  dropDateLabel,
+  dropForDate,
+  drops,
+  localDateKey,
+  nextDropAfter,
+  personalizeCard,
+  whoDecidesFor,
+  type Drop as DropData,
+  type WhoDecides,
+} from '@/data/drops';
 import type { Milestone } from '@/lib/streak';
 import { useNow } from '@/lib/useNow';
 import { useDrops } from '@/state/DropProvider';
+import { useProfile } from '@/state/ProfileProvider';
 import { useStreak } from '@/state/StreakProvider';
 import { useTheme } from '@/theme/ThemeProvider';
 import { fonts, radius } from '@/theme/tokens';
@@ -22,10 +33,16 @@ const close = () => (router.canGoBack() ? router.back() : router.replace('/'));
 export default function Drop() {
   const now = useNow();
   const drop = dropForDate(now);
-  return drop ? <DropView key={drop.id} drop={drop} now={now} /> : <NoDropYet />;
+  return drop ? <DropView key={drop.id} drop={drop} now={now} /> : <NoDropYet now={now} />;
 }
 
-function NoDropYet() {
+/** When the next Drop lands, or that more are coming when none is scheduled. */
+function nextDropLine(now: Date) {
+  const next = nextDropAfter(now);
+  return next ? `Next Drop: ${dropDateLabel(next.date)}` : 'More Drops coming soon';
+}
+
+function NoDropYet({ now }: { now: Date }) {
   const { t } = useTheme();
   const c = t.drop;
   return (
@@ -34,8 +51,10 @@ function NoDropYet() {
         <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
           <CloseButton onPress={close} />
         </View>
-        <T variant="display" style={{ color: c.text }}>No Drop yet</T>
-        <T style={{ color: c.text, fontSize: 16, lineHeight: 23 }}>The first Drop lands {dropDateLabel(drops[0].date)}.</T>
+        <T variant="display" style={{ color: c.text }}>{nextDropLine(now)}</T>
+        <T style={{ color: c.text, fontSize: 16, lineHeight: 23 }}>
+          A new 60-second Drop lands every day from {dropDateLabel(drops[0].date)} to {dropDateLabel(drops[drops.length - 1].date)}.
+        </T>
       </View>
     </SafeAreaView>
   );
@@ -61,6 +80,7 @@ function DropView({ drop, now }: { drop: DropData; now: Date }) {
   const c = t.drop;
   const streak = useStreak();
   const saved = useDrops();
+  const { districts } = useProfile().profile;
   const [index, setIndex] = useState(0);
   const [unlocked, setUnlocked] = useState<Milestone | null>(null);
   const [asking, setAsking] = useState(false);
@@ -72,6 +92,7 @@ function DropView({ drop, now }: { drop: DropData; now: Date }) {
   const stats = streak.statsOn(now);
   const isToday = drop.date === localDateKey(now);
   const bookmarked = saved.isSaved(drop.id);
+  const card = onQuiz ? null : personalizeCard(drop, drop.cards[index], districts);
 
   const go = (step: number) => setIndex((i) => Math.max(0, Math.min(total - 1, i + step)));
 
@@ -107,6 +128,7 @@ function DropView({ drop, now }: { drop: DropData; now: Date }) {
             <T variant="caption" style={{ color: c.text }}>
               {dropDateLabel(drop.date)} · {stats.current ? `Day ${stats.current} streak` : 'Finish it to start a streak'}
             </T>
+            {isToday ? null : <T variant="caption" style={{ color: c.text }}>No new Drop today. {nextDropLine(now)}.</T>}
           </View>
           <CloseButton onPress={onClose} />
         </View>
@@ -120,17 +142,40 @@ function DropView({ drop, now }: { drop: DropData; now: Date }) {
         <T style={{ color: c.text, fontSize: 16, lineHeight: 23 }}>{drop.summary}</T>
 
         <View style={{ minHeight: 300, borderRadius: radius.xl, backgroundColor: c.card, padding: 20, gap: 10 }}>
-          {onQuiz ? (
+          {onQuiz || !card ? (
             <QuickCheckCard drop={drop} picked={saved.answers[drop.id]} onPick={pick} onBack={() => go(-1)} streakDays={stats.current} finished={finished} />
           ) : (
             <>
               <T variant="eyebrow" style={{ color: c.cardAccent }}>{index + 1} of {drop.cards.length}</T>
-              <T variant="title" style={{ color: c.cardText, fontSize: 24, lineHeight: 28 }}>{drop.cards[index].title}</T>
-              <T style={{ color: c.cardText, fontSize: 17, lineHeight: 25 }}>{drop.cards[index].body}</T>
+              <T variant="title" style={{ color: c.cardText, fontSize: 24, lineHeight: 28 }}>{card.title}</T>
+              <T style={{ color: c.cardText, fontSize: 17, lineHeight: 25 }}>{card.body}</T>
+              {card.link ? (
+                <Pressable
+                  accessibilityRole="link"
+                  accessibilityLabel={`${card.link.title}. Opens in browser`}
+                  onPress={() => openSource(card.link!.url)}
+                  // Above the tap zones so it stays tappable.
+                  style={({ pressed }) => ({
+                    zIndex: 2,
+                    alignSelf: 'flex-start',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 6,
+                    minHeight: 44,
+                    paddingHorizontal: 14,
+                    borderRadius: radius.md,
+                    backgroundColor: c.cardSub,
+                    opacity: pressed ? 0.8 : 1,
+                  })}
+                >
+                  <T variant="label" style={{ color: c.cardText }}>{card.link.title}</T>
+                  <Ionicons name="open-outline" size={16} color={c.cardText} />
+                </Pressable>
+              ) : null}
               <View style={{ flex: 1 }} />
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', gap: 12 }}>
                 <View style={{ flex: 1 }}>
-                  <SourceTag source={drop.sources[drop.cards[index].source].outlet} color={c.cardMuted} />
+                  <SourceTag source={drop.sources[card.source].outlet} color={c.cardMuted} />
                 </View>
                 <T variant="caption" style={{ color: c.cardMuted }}>{index === 0 ? 'Tap right for next' : 'Tap left to go back'}</T>
               </View>
@@ -153,7 +198,7 @@ function DropView({ drop, now }: { drop: DropData; now: Date }) {
 
         <T variant="eyebrow" style={{ color: c.text, marginTop: 4 }}>Who decides</T>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-          {drop.whoDecides.map((w) => (
+          {whoDecidesFor(drop, districts).map((w) => (
             <WhoChip key={w.label} who={w} />
           ))}
         </View>
@@ -322,10 +367,11 @@ function QuickCheckCard({
 function WhoChip({ who }: { who: WhoDecides }) {
   const { t } = useTheme();
   const c = t.drop;
+  // Pushed inside the Drop's own stack (drop/_layout.tsx) so the page shows on top of the modal on iOS.
   const href = who.officialId
-    ? ({ pathname: '/official/[id]', params: { id: who.officialId } } as const)
+    ? ({ pathname: '/drop/official/[id]', params: { id: who.officialId } } as const)
     : who.raceId
-      ? ({ pathname: '/race/[id]', params: { id: who.raceId } } as const)
+      ? ({ pathname: '/drop/race/[id]', params: { id: who.raceId } } as const)
       : null;
   const body = (
     <>

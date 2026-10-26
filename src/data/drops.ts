@@ -12,15 +12,21 @@
  */
 
 import { IVOTE_URL, SAMPLE_BALLOT_URL } from '@/data/delaware';
-import { GENERAL_CANDIDATES_URL, WHYY_GUIDE_URL } from '@/data/ballot2026';
+import { GENERAL_CANDIDATES_URL, racesForDistricts, sortedCandidates, WHYY_GUIDE_URL, type Race } from '@/data/ballot2026';
+import type { Districts } from '@/lib/geocode';
 
 export type DropSource = { title: string; url: string; outlet: string };
 
 export type DropCard = {
   title: string;
+  /** For `kind: 'myBallot'`, the text shown when we don't know the person's districts. */
   body: string;
   /** Index into the Drop's `sources`. */
   source: number;
+  /** 'myBallot': filled from the person's saved districts by `personalizeCard`. */
+  kind?: 'myBallot';
+  /** A tappable link shown on the card. */
+  link?: DropSource;
 };
 
 /** A chip under "Who decides". Links to an official or race page when one exists. */
@@ -73,9 +79,9 @@ const SPOTLIGHT_EARLY_VOTING: DropSource = {
   outlet: 'Spotlight Delaware',
 };
 const WHYY_GUIDE: DropSource = { title: 'Delaware election 2026 voter guide', url: WHYY_GUIDE_URL, outlet: 'WHYY' };
-const ABSENTEE_BROCHURE: DropSource = {
-  title: "Absentee Voting: How to Vote When You Can't Go to the Polls",
-  url: 'https://elections.delaware.gov/voter/absentee/pdfs/absentee_voting.pdf',
+const ABSENTEE_APPLICATION: DropSource = {
+  title: 'Request for an Absentee Ballot (form ABFM004 v4.0, Nov. 2025)',
+  url: 'https://elections.delaware.gov/voter/absentee/pdfs/absentee_ballot_application.pdf',
   outlet: 'Delaware Department of Elections',
 };
 const IVOTE: DropSource = { title: 'iVote: apply for an absentee ballot', url: IVOTE_URL, outlet: 'Delaware Department of Elections' };
@@ -88,6 +94,16 @@ const SPOTLIGHT_DOVER_BUDGET: DropSource = {
   title: 'Dover agrees to balance budget with tax increases, department cuts',
   url: 'https://spotlightdelaware.org/2026/05/22/dover-approves-plan-to-balance-budget-with-tax-increases-department-cuts/',
   outlet: 'Spotlight Delaware',
+};
+const LEWIS_BUDGET_COLUMN: DropSource = {
+  title: 'Lewis: Dover council member breaks down budget vote',
+  url: 'https://baytobaynews.com/stories/lewis-dover-council-member-breaks-down-budget-vote,326026',
+  outlet: 'Bay to Bay News',
+};
+const DPM_DOVER_FEE: DropSource = {
+  title: 'Delaware Healthcare Association speaks out against proposed impact fee in Dover',
+  url: 'https://www.delawarepublic.org/politics-government/2026-08-11/delaware-healthcare-association-speaks-out-against-proposed-impact-fee-in-dover',
+  outlet: 'Delaware Public Media',
 };
 const SPOTLIGHT_DOVER_FEE: DropSource = {
   title: 'Dover leaders propose fee on tax-exempt properties; legality unclear',
@@ -157,18 +173,18 @@ export const drops: Drop[] = [
     cards: [
       {
         title: 'Students qualify',
-        body: "Delaware doesn't have no-excuse mail voting, but students are on the Department of Elections' list of people who can vote by absentee ballot.",
+        body: "Delaware doesn't have no-excuse mail voting, but the state's absentee application lists \"student\" as a reason, under the nature of your business or occupation.",
         source: 1,
       },
       {
         title: 'Apply by Friday',
-        body: 'Absentee ballot applications must be received by Friday, Oct. 30. You can apply online through iVote.',
-        source: 0,
+        body: 'By law, absentee ballots can only be mailed up to 4 days before Election Day, so applications must be received by Friday, Oct. 30. You can apply online through iVote.',
+        source: 1,
       },
       {
         title: 'Get it back on time',
-        body: 'Your completed ballot must reach your county election office by 8 p.m. on Election Day, Nov. 3. A postmark does not count.',
-        source: 0,
+        body: 'Your completed ballot must reach your county election office by 8 p.m. on Election Day, Nov. 3. A postmark does not count, and you cannot drop it off at an early voting site or polling place.',
+        source: 1,
       },
       {
         title: 'Close to home?',
@@ -188,7 +204,7 @@ export const drops: Drop[] = [
       explanation: 'Absentee ballots must be received by your county election office by 8 p.m. on Election Day. Postmarks do not count.',
       source: 0,
     },
-    sources: [WHYY_GUIDE, ABSENTEE_BROCHURE, IVOTE],
+    sources: [WHYY_GUIDE, ABSENTEE_APPLICATION, IVOTE],
     reviewed: false,
   },
   {
@@ -258,7 +274,7 @@ export const drops: Drop[] = [
       },
       {
         title: 'Who decided',
-        body: 'City Council approved the plan at a May workshop with one no vote, then balanced the budget with these increases.',
+        body: 'City Council approved the budget over at least one no vote. Councilman Brian Lewis voted no on May 20 and again on June 8.',
         source: 1,
       },
     ],
@@ -274,7 +290,7 @@ export const drops: Drop[] = [
       explanation: 'Council added 1 cent per kilowatt-hour, which is expected to raise about $6 million a year for the city.',
       source: 0,
     },
-    sources: [SPOTLIGHT_DOVER_BUDGET, SPOTLIGHT_DOVER_FEE],
+    sources: [SPOTLIGHT_DOVER_BUDGET, LEWIS_BUDGET_COLUMN],
     reviewed: false,
   },
   {
@@ -306,8 +322,8 @@ export const drops: Drop[] = [
       },
       {
         title: 'Where it stands',
-        body: 'In July, a council committee voted unanimously to have city staff study it, with a report due in late August. We could not find a public update since then.',
-        source: 0,
+        body: "In July, a council committee voted unanimously to have city staff study it. As of August, the proposal hadn't advanced. The Delaware Healthcare Association came out against it, and Sen. Paradee called it \"politically impossible.\"",
+        source: 1,
       },
     ],
     whoDecides: [
@@ -328,7 +344,7 @@ export const drops: Drop[] = [
       explanation: "Dover would need an ordinance and a charter change, and charter changes need a two-thirds vote in each chamber of the General Assembly.",
       source: 0,
     },
-    sources: [SPOTLIGHT_DOVER_FEE],
+    sources: [SPOTLIGHT_DOVER_FEE, DPM_DOVER_FEE],
     reviewed: false,
   },
   {
@@ -397,9 +413,10 @@ export const drops: Drop[] = [
       },
       { title: 'What to bring', body: ID_RULES, source: 0 },
       {
-        title: "If you're registered at DSU",
-        body: "DSU's main campus is in State House District 32, where Kerri Evelyn Harris is the only candidate, and State Senate District 16, which has no race this year. Check your own sample ballot to be sure.",
-        source: 2,
+        title: 'Your district races',
+        body: 'Add your address on the Ballot tab to see your State Senate and State House races here, or look up your sample ballot.',
+        source: 3,
+        kind: 'myBallot',
       },
       {
         title: 'Absentee ballots',
@@ -413,7 +430,6 @@ export const drops: Drop[] = [
       { label: 'Attorney General', role: 'On every Delaware ballot', raceId: 'attorney-general' },
       { label: 'State Treasurer', role: 'On every Delaware ballot', raceId: 'treasurer' },
       { label: 'State Auditor', role: 'On every Delaware ballot', raceId: 'auditor' },
-      { label: 'State House, District 32', role: "DSU's district", raceId: 'state-house-32' },
     ],
     quickCheck: {
       question: 'On Election Day, where can you vote in person?',
@@ -429,14 +445,13 @@ export const drops: Drop[] = [
 
 /** Claims to check before flipping `reviewed`. */
 export const NEEDS_CHECK = [
-  'Oct 28: "students" as an absentee reason comes from the Department of Elections absentee brochure dated 6/21/2019. Confirm it still matches current law.',
-  'Oct 28: the Oct. 30 application deadline is from the WHYY guide. Some sites list a Nov. 2 noon deadline for email, fax or in-person requests; left out until confirmed.',
+  'Oct 28: "student" reason, the 4-day mailing rule and "cannot be returned at early voting sites or polling places" are from absentee application ABFM004 v4.0 (11/10/2025). The Oct. 30 date is from the WHYY guide and matches 4 days before Nov. 3.',
+  'Oct 28: some sites list a Nov. 2 noon deadline for email, fax or in-person requests; left out until confirmed.',
   'Oct 29: Michael Ramone\'s background ("former state representative and state House minority leader") is from WHYY\'s Aug. 25 primary guide.',
-  'Oct 30: "with one no vote" is from the May workshop (Spotlight, May 22). We did not find the final June adoption vote count, so the card does not give one. "Balanced the budget with these increases" is from Spotlight, July 13.',
-  'Oct 30: the 40% tax-exempt figure is from the May 22 article; the July 13 article says about 45% of property has nonprofit status. Card uses 40%.',
-  'Oct 31: the feasibility report was due late August. No later reporting found as of 2026-10-25; the card says so.',
-  'Nov 2: DSU main campus districts (House 32, Senate 16) come from the Census geocoder result noted in src/data/delaware.ts, not from an official district map.',
-];
+  'Oct 30: no vote count is given. Lewis\'s no votes on May 20 and June 8 come from his own Bay to Bay News column (an opinion piece, so the dates are his account). The 40% tax-exempt figure is from Spotlight, May 22.',
+  'Oct 31: "hadn\'t advanced as of August," the DHA opposition and "politically impossible" are from Delaware Public Media, Aug. 11. No later reporting found as of 2026-10-25.',
+  'Nov 2: the district races card is filled from the person\'s saved districts (Census geocoder) and ballot2026.ts. With no address it links to the state sample ballot lookup.',
+]
 
 /** Local calendar date as 'YYYY-MM-DD' (not UTC). */
 export function localDateKey(d: Date = new Date()) {
@@ -455,6 +470,55 @@ export function dropForDate(now: Date = new Date()) {
 
 export function getDrop(id: string) {
   return drops.find((d) => d.id === id) ?? null;
+}
+
+/** The first Drop dated after today. Null when none is scheduled. */
+export function nextDropAfter(now: Date = new Date()) {
+  const today = localDateKey(now);
+  let best: Drop | null = null;
+  for (const d of drops) if (d.date > today && (!best || d.date < best.date)) best = d;
+  return best;
+}
+
+const listNames = (names: string[]) => (names.length < 3 ? names.join(' and ') : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`);
+
+/** Candidates by last name, party as plain text. */
+function raceLine(r: Race) {
+  const names = sortedCandidates(r).map((c) => `${c.name} (${c.party})`);
+  return r.unopposed ? `${r.office}: ${names[0]} is the only candidate.` : `${r.office}: ${listNames(names)} are running.`;
+}
+
+/** The person's State Senate and State House races, from their saved districts. */
+function districtRaces(d: Districts | null) {
+  const ballot = racesForDistricts(d);
+  return {
+    known: ballot.known,
+    senate: ballot.races.find((r) => r.scope === 'stateSenate') ?? null,
+    house: ballot.races.find((r) => r.scope === 'stateHouse') ?? null,
+  };
+}
+
+/** Fills a `myBallot` card from saved districts. With no Delaware address, links to the sample ballot. */
+export function personalizeCard(drop: Drop, card: DropCard, d: Districts | null): DropCard {
+  if (card.kind !== 'myBallot') return card;
+  const sampleBallot = { ...card, link: SAMPLE_BALLOT, source: Math.max(0, drop.sources.indexOf(SAMPLE_BALLOT)) };
+  const { known, senate, house } = districtRaces(d);
+  if (!known || !d) return sampleBallot;
+  const lines: string[] = [];
+  if (senate) lines.push(raceLine(senate));
+  else if (d.stateSenate) lines.push(`State Senate, District ${d.stateSenate}: no race this year.`);
+  if (house) lines.push(raceLine(house));
+  else if (d.stateHouse) lines.push(`State House, District ${d.stateHouse}: no race this year.`);
+  if (!lines.length) return { ...sampleBallot, body: "We couldn't match your address to a State Senate or State House district. Look up your sample ballot." };
+  return { ...card, body: lines.join(' '), source: Math.max(0, drop.sources.indexOf(CANDIDATE_LIST)) };
+}
+
+/** "Who decides" chips, plus the person's own district races on Drops with a `myBallot` card. */
+export function whoDecidesFor(drop: Drop, d: Districts | null): WhoDecides[] {
+  if (!drop.cards.some((c) => c.kind === 'myBallot')) return drop.whoDecides;
+  const { senate, house } = districtRaces(d);
+  const mine = [senate, house].filter((r): r is Race => !!r).map((r) => ({ label: r.office, role: 'On your ballot', raceId: r.id }));
+  return [...drop.whoDecides, ...mine];
 }
 
 /** "Tue, Oct 27" from 'YYYY-MM-DD'. */

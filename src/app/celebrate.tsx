@@ -3,10 +3,15 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { View } from 'react-native';
 
 import { Button, Card, ProgressBar, Row, Screen, T } from '@/components/ui';
-import { BADGE_NAMES, MILESTONES } from '@/lib/streak';
+import { drops } from '@/data/drops';
+import { BADGE_NAMES, MILESTONES, type Milestone } from '@/lib/streak';
 import { useNow } from '@/lib/useNow';
 import { useStreak } from '@/state/StreakProvider';
 import { useTheme } from '@/theme/ThemeProvider';
+import { radius } from '@/theme/tokens';
+
+/** A streak this long needs more Drops than exist today, so it can't be earned yet. */
+const needsMoreDrops = (m: Milestone) => m > drops.length;
 
 /** Shown after finishing a Drop that unlocked a badge: streak ring, the badge, next milestone. */
 export default function Celebrate() {
@@ -54,13 +59,43 @@ export default function Celebrate() {
             </Row>
             <ProgressBar value={days / next} />
             <T variant="caption" tone="faint">
-              {next - days} more {next - days === 1 ? 'day' : 'days'} for {BADGE_NAMES[next]}
+              {needsMoreDrops(next) ? `${BADGE_NAMES[next]}: more Drops coming` : `${next - days} more ${next - days === 1 ? 'day' : 'days'} for ${BADGE_NAMES[next]}`}
             </T>
           </>
         ) : (
           <T variant="label">You've reached every milestone.</T>
         )}
       </Card>
+
+      <Row gap={8}>
+        {MILESTONES.map((m) => {
+          const earned = stats.badges.includes(m);
+          const later = !earned && needsMoreDrops(m);
+          return (
+            <View
+              key={m}
+              accessibilityLabel={`${BADGE_NAMES[m]}, ${m} days: ${earned ? 'earned' : later ? 'locked, more Drops coming' : 'locked'}`}
+              style={{
+                flex: 1,
+                alignItems: 'center',
+                gap: 2,
+                paddingVertical: 10,
+                paddingHorizontal: 4,
+                borderRadius: radius.md,
+                backgroundColor: earned ? t.accentTint : t.surface,
+                borderWidth: earned ? 2 : 1,
+                borderColor: earned ? t.accent : t.line,
+              }}
+            >
+              <Ionicons name={earned ? 'ribbon' : 'lock-closed'} size={18} color={earned ? t.accentText : t.faint} />
+              <T variant="heading" tone={earned ? 'accent' : 'faint'}>{m}</T>
+              <T variant="caption" tone="faint" style={{ textAlign: 'center' }}>
+                {earned ? 'Earned' : later ? 'More Drops coming' : 'Locked'}
+              </T>
+            </View>
+          );
+        })}
+      </Row>
 
       {/* TODO(DSU rank): hidden until there's a backend. Needs a server-side streak table and a rank function. */}
 

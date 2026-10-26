@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, useSegments } from 'expo-router';
 import { useState } from 'react';
 import { Linking, View } from 'react-native';
 
@@ -17,6 +17,7 @@ export default function OfficialDetail() {
   const { t } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { profile } = useProfile();
+  const inDrop = useSegments()[0] === 'drop';
   const official = getOfficial(String(id));
   const [openError, setOpenError] = useState<string | null>(null);
 
@@ -98,7 +99,12 @@ export default function OfficialDetail() {
             label="See the race"
             kind={yours ? 'primary' : 'quiet'}
             icon="list"
-            onPress={() => router.push({ pathname: '/race/[id]', params: { id: race.id } })}
+            onPress={() =>
+              // Opened from a Drop: stay inside the Drop's stack so the race shows on top of the modal.
+              inDrop
+                ? router.push({ pathname: '/drop/race/[id]', params: { id: race.id } })
+                : router.push({ pathname: '/race/[id]', params: { id: race.id } })
+            }
           />
           <SourceTag source={race.source} />
         </Card>
