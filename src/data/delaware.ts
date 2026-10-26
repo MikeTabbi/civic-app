@@ -12,6 +12,8 @@ export const REGISTRATION_FAQ_URL = 'https://elections.delaware.gov/voter/VoterR
 export const VOTE_GOV_URL = 'https://vote.gov';
 /** Check or update a voter record. Source: Delaware Department of Elections registration FAQ. */
 export const IVOTE_URL = 'https://iVote.de.gov';
+/** Absentee ballot application forms. Source: Delaware Department of Elections. */
+export const ABSENTEE_FORMS_URL = 'https://elections.delaware.gov/public/forms/index.html#absentee';
 /** DSU main campus. Census geocoder matches it to State Senate 16 / State House 32, Kent County, Dover. */
 export const DSU_ADDRESS = '1200 N DuPont Hwy, Dover, DE 19901';
 
@@ -31,6 +33,10 @@ export const generalElection2026 = {
   absenteeReturnBy: '2026-11-03T20:00:00',
   pollsOpen: '07:00',
   pollsClose: '20:00',
+  /** Early voting is closed this day. Source: WHYY voter guide. */
+  earlyVotingClosed: ['2026-10-25'],
+  /** Early voting opens 11 a.m. from this day on (7 a.m. before). Closes 7 p.m. every day. Source: WHYY voter guide. */
+  earlyVotingLateOpenFrom: '2026-10-28',
   source: 'Delaware Department of Elections',
   sourceUrl: OFFICIAL_SITE,
 };

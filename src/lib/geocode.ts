@@ -14,6 +14,8 @@ export type Districts = {
   stateSenate: string | null;
   stateHouse: string | null;
   county: string | null; // e.g. 'Kent'
+  /** Levy Court / county council district. The Census doesn't return it, so it's unknown until we add a county lookup. */
+  countyDistrict?: string | null;
   place: string | null; // e.g. 'Dover'
   lookedUpAt: string;
 };

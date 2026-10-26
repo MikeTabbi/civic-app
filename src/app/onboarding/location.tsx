@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useRef, useState } from 'react';
 import { Linking, Pressable, View } from 'react-native';
 
-import { Button, Card, Notice, Row, Screen, SourceTag, StepHeader, T, TextLink } from '@/components/ui';
+import { Button, Card, IconButton, Notice, Row, Screen, SourceTag, StepHeader, T, TextLink } from '@/components/ui';
 import { DSU_ADDRESS, VOTE_GOV_URL } from '@/data/delaware';
 import { AddressSearch } from '@/components/AddressSearch';
 import { getCurrentLocation, type AddressSuggestion } from '@/lib/addressSearch';
@@ -19,9 +19,14 @@ const CHOICES: { id: VotingLocation; title: string; sub: string; icon: 'school' 
 
 type Status = 'idle' | 'loading' | 'found' | 'not_found' | 'network' | 'location_denied';
 
-/** Step 2 of 3: where you vote. Address is private and only used to find districts. */
+/**
+ * Step 2 of 3: where you vote. Address is private and only used to find districts.
+ * Also served at /address?mode=edit so people can add or change it after onboarding.
+ */
 export default function Location() {
   const { t } = useTheme();
+  const { mode } = useLocalSearchParams<{ mode?: string }>();
+  const editing = mode === 'edit';
   const { profile, update } = useProfile();
   const [choice, setChoice] = useState<VotingLocation>(profile.votingLocation ?? 'campus');
   const [address, setAddress] = useState(profile.address ?? '');
@@ -30,10 +35,12 @@ export default function Location() {
   const [locating, setLocating] = useState(false);
   const abort = useRef<AbortController | null>(null);
 
-  // The quiz writes its recommendation to the profile; reflect it here.
-  useEffect(() => {
+  // The quiz writes its recommendation to the profile; reflect it here (adjusting state during render, not in an effect).
+  const [seenLocation, setSeenLocation] = useState(profile.votingLocation);
+  if (profile.votingLocation !== seenLocation) {
+    setSeenLocation(profile.votingLocation);
     if (profile.votingLocation) setChoice(profile.votingLocation);
-  }, [profile.votingLocation]);
+  }
 
   const onAddressChange = (v: string) => {
     setAddress(v);
@@ -94,12 +101,19 @@ export default function Location() {
       address: skip ? null : address.trim() || null,
       districts: skip ? null : districts,
     });
-    router.push('/onboarding/reminders');
+    if (editing) router.back();
+    else router.push('/onboarding/reminders');
   };
 
   return (
     <Screen style={{ gap: 16 }}>
-      <StepHeader step={2} onBack={() => router.back()} />
+      {editing ? (
+        <Row style={{ minHeight: 44 }}>
+          <IconButton icon="close" label="Close" onPress={() => router.back()} />
+        </Row>
+      ) : (
+        <StepHeader step={2} onBack={() => router.back()} />
+      )}
       <T variant="display" style={{ marginTop: 8 }}>
         Where do you <T variant="display" tone="accent">vote</T>?
       </T>
@@ -135,7 +149,7 @@ export default function Location() {
           );
         })}
       </View>
-      <TextLink label="Not sure? Take the 30-second quiz" onPress={() => router.push('/onboarding/quiz')} />
+      {editing ? null : <TextLink label="Not sure? Take the 30-second quiz" onPress={() => router.push('/onboarding/quiz')} />}
 
       <AddressSearch
         label={choice === 'campus' ? 'Dorm or campus address' : 'Home address'}
@@ -210,9 +224,11 @@ export default function Location() {
 
       <View style={{ flex: 1, minHeight: 8 }} />
       <Button label={status === 'found' ? 'Show me my ballot' : 'Continue'} onPress={() => next()} disabled={status !== 'found'} />
-      <Pressable accessibilityRole="button" onPress={() => next(true)} style={{ alignItems: 'center', minHeight: 44, justifyContent: 'center' }}>
-        <T variant="label" tone="faint">Skip for now</T>
-      </Pressable>
+      {editing ? null : (
+        <Pressable accessibilityRole="button" onPress={() => next(true)} style={{ alignItems: 'center', minHeight: 44, justifyContent: 'center' }}>
+          <T variant="label" tone="faint">Skip for now</T>
+        </Pressable>
+      )}
     </Screen>
   );
 }

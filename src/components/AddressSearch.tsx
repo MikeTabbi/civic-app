@@ -35,35 +35,32 @@ export function AddressSearch({
 }) {
   const { t } = useTheme();
   const [focused, setFocused] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<AddressSuggestion[]>([]);
+  // Suggestions and the text they were found for, so stale results never show.
+  const [found, setFound] = useState<{ query: string; list: AddressSuggestion[] } | null>(null);
   // Only text the person typed triggers a search (not a picked or located address).
   const [typed, setTyped] = useState<string | null>(null);
   const abort = useRef<AbortController | null>(null);
+  const searching = typed === value && value.trim().length >= 3;
+  const results = searching && found?.query === value ? found.list : [];
+  const loading = searching && found?.query !== value;
 
   // Debounced search: wait 300 ms after typing stops.
   useEffect(() => {
-    if (typed !== value || value.trim().length < 3) {
-      setResults([]);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
+    if (!searching) return;
     const id = setTimeout(async () => {
       abort.current?.abort();
       abort.current = new AbortController();
       const list = await searchAddresses(value, { delawareOnly, signal: abort.current.signal });
-      setResults(list);
-      setLoading(false);
+      setFound({ query: value, list });
     }, 300);
     return () => clearTimeout(id);
-  }, [value, delawareOnly, typed]);
+  }, [value, delawareOnly, searching]);
 
   const open = focused && (typed === value || !value);
 
   const choose = (s: AddressSuggestion) => {
     setTyped(null);
-    setResults([]);
+    setFound(null);
     onChangeText(s.label);
     onPick(s);
   };
@@ -126,7 +123,7 @@ export function AddressSearch({
             accessibilityRole="button"
             onPress={() => {
               setTyped(null);
-              setResults([]);
+              setFound(null);
               onUseLocation();
             }}
             style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, backgroundColor: pressed ? t.sub : 'transparent' })}

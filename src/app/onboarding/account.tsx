@@ -30,16 +30,15 @@ export default function Account() {
   const [serverError, setServerError] = useState<string | null>(null);
   const [signedIn, setSignedIn] = useState<SignedInUser | null>(null);
 
-  useEffect(() => {
-    currentUser().then((u) => u && onSignedIn(u)).catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const onSignedIn = (u: SignedInUser) => {
     setSignedIn(u);
     if (u.email) setEmail(u.email);
     if (u.name) setName((n) => n || u.name!);
   };
+
+  useEffect(() => {
+    currentUser().then((u) => u && onSignedIn(u)).catch(() => {});
+  }, []);
 
   const cleanHandle = handle.trim().toLowerCase().replace(/^@/, '');
   const errors = {
