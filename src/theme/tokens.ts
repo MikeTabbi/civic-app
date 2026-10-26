@@ -24,6 +24,20 @@ export type ThemeTokens = {
   onDone: string;
   empty: string;
   emptyBorder: string;
+  /** Daily Drop palette: full orange page in light mode, charcoal in dark. */
+  drop: {
+    bg: string;
+    text: string;
+    track: string;
+    card: string;
+    cardText: string;
+    cardMuted: string;
+    /** Unpicked quick-check choice on the card. */
+    cardSub: string;
+    cardAccent: string;
+    btnBg: string;
+    btnFg: string;
+  };
 };
 
 export const orangeLight: ThemeTokens = {
@@ -45,6 +59,18 @@ export const orangeLight: ThemeTokens = {
   onDone: '#252422',
   empty: '#E8E2D6',
   emptyBorder: '#CCC5B9',
+  drop: {
+    bg: '#EB5E28',
+    text: '#252422',
+    track: 'rgba(37,36,34,0.14)',
+    card: '#252422',
+    cardText: '#FFFCF2',
+    cardMuted: '#CCC5B9',
+    cardSub: 'rgba(255,252,242,0.10)',
+    cardAccent: '#F27A4C',
+    btnBg: '#252422',
+    btnFg: '#FFFCF2',
+  },
 };
 
 export const orangeDark: ThemeTokens = {
@@ -66,6 +92,18 @@ export const orangeDark: ThemeTokens = {
   onDone: '#252422',
   empty: '#403D39',
   emptyBorder: '#5A5650',
+  drop: {
+    bg: '#252422',
+    text: '#FFFCF2',
+    track: 'rgba(255,252,242,0.12)',
+    card: '#403D39',
+    cardText: '#FFFCF2',
+    cardMuted: '#CCC5B9',
+    cardSub: 'rgba(255,252,242,0.10)',
+    cardAccent: '#F27A4C',
+    btnBg: '#EB5E28',
+    btnFg: '#252422',
+  },
 };
 
 export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 28 } as const;

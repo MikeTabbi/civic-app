@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Link } from 'expo-router';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 
 import { Avatar, Button, Card, ProgressBar, Row, Screen, T } from '@/components/ui';
 import { squad } from '@/data/mock';
@@ -44,11 +43,7 @@ export default function Squad() {
 
       <Row style={{ justifyContent: 'space-between' }}>
         <T variant="heading">DSU squads</T>
-        <Link href="/leaderboard" asChild>
-          <Pressable accessibilityRole="link" hitSlop={8}>
-            <T variant="label" tone="accent">Full board</T>
-          </Pressable>
-        </Link>
+        {/* TODO: link "Full board" to /leaderboard once it reads real ranks (wired up with the Squad page). */}
       </Row>
       <View style={{ gap: 8 }}>
         {squad.board.map((b) => (

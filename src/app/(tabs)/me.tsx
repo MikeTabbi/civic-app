@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import { Avatar, Button, Card, Row, Screen, Segmented, T } from '@/components/ui';
 import { me } from '@/data/mock';
 import { useProfile } from '@/state/ProfileProvider';
+import { useStreak } from '@/state/StreakProvider';
 import { useTheme, type AppearancePref } from '@/theme/ThemeProvider';
 import { radius } from '@/theme/tokens';
 
@@ -11,6 +12,8 @@ import { radius } from '@/theme/tokens';
 export default function Me() {
   const { t, appearance, setAppearance } = useTheme();
   const { reset } = useProfile();
+  const streak = useStreak();
+  const badges = me.badges.map((b) => (b.label === 'Day streak' ? { ...b, big: String(streak.current) } : b));
 
   return (
     <Screen>
@@ -36,7 +39,7 @@ export default function Me() {
       </Row>
 
       <Row gap={8}>
-        {me.badges.map((b) => (
+        {badges.map((b) => (
           <View
             key={b.label}
             style={{

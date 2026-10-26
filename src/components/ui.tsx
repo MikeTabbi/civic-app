@@ -292,9 +292,9 @@ export function Avatar({ size = 44, ring, label, initials }: { size?: number; ri
 }
 
 /** Every fact in the app carries its source. */
-export function SourceTag({ source }: { source: string }) {
+export function SourceTag({ source, color }: { source: string; color?: string }) {
   return (
-    <T variant="caption" tone="faint">
+    <T variant="caption" tone="faint" style={color ? { color } : undefined}>
       Source: {source}
     </T>
   );

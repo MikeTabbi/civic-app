@@ -7,8 +7,10 @@ import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { BallotProvider, useBallot } from '@/state/BallotProvider';
+import { DropProvider, useDrops } from '@/state/DropProvider';
 import { FollowProvider, useFollows } from '@/state/FollowProvider';
 import { ProfileProvider, useProfile } from '@/state/ProfileProvider';
+import { StreakProvider, useStreak } from '@/state/StreakProvider';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -29,7 +31,11 @@ export default function RootLayout() {
         <ProfileProvider>
           <BallotProvider>
             <FollowProvider>
-              <RootStack fontsLoaded={fontsLoaded} />
+              <StreakProvider>
+                <DropProvider>
+                  <RootStack fontsLoaded={fontsLoaded} />
+                </DropProvider>
+              </StreakProvider>
             </FollowProvider>
           </BallotProvider>
         </ProfileProvider>
@@ -43,8 +49,10 @@ function RootStack({ fontsLoaded }: { fontsLoaded: boolean }) {
   const { ready, profile } = useProfile();
   const ballot = useBallot();
   const follows = useFollows();
+  const streak = useStreak();
+  const drops = useDrops();
   const onboarded = profile.onboarded;
-  const loaded = fontsLoaded && ready && ballot.ready && follows.ready;
+  const loaded = fontsLoaded && ready && ballot.ready && follows.ready && streak.ready && drops.ready;
 
   useEffect(() => {
     if (loaded) SplashScreen.hideAsync().catch(() => {});

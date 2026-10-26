@@ -3,6 +3,8 @@ import { router } from 'expo-router';
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
 import { Pressable, Text, View } from 'react-native';
 
+import { dropForDate } from '@/data/drops';
+import { useStreak } from '@/state/StreakProvider';
 import { useTheme } from '@/theme/ThemeProvider';
 import { fonts } from '@/theme/tokens';
 import type { IconName } from './ui';
@@ -20,6 +22,9 @@ const TABS: Record<string, { label: string; icon: IconName; iconOn: IconName }> 
  */
 export function TabBar({ state, navigateToTab, insets }: BottomTabBarProps) {
   const { t } = useTheme();
+  const { isDone } = useStreak();
+  const current = dropForDate();
+  const dropPending = !!current && !isDone(current.id);
   const routes = state.routes.filter((r) => TABS[r.name]);
   const left = routes.slice(0, 2);
   const right = routes.slice(2);
@@ -60,7 +65,7 @@ export function TabBar({ state, navigateToTab, insets }: BottomTabBarProps) {
       <View style={{ flex: 1, alignItems: 'center' }}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Open today's Drop"
+          accessibilityLabel={dropPending ? "Open today's Drop, not finished yet" : "Open today's Drop"}
           onPress={() => router.push('/drop')}
           style={({ pressed }) => ({
             width: 60,
@@ -76,6 +81,11 @@ export function TabBar({ state, navigateToTab, insets }: BottomTabBarProps) {
           })}
         >
           <Ionicons name="flame" size={26} color={t.onAccent} />
+          {dropPending ? (
+            <View
+              style={{ position: 'absolute', top: 2, right: 2, width: 12, height: 12, borderRadius: 6, backgroundColor: t.text, borderWidth: 2, borderColor: t.accent }}
+            />
+          ) : null}
         </Pressable>
         <Text style={{ fontFamily: fonts.bodySemi, fontSize: 11, color: t.faint, marginTop: 2 }}>Drop</Text>
       </View>

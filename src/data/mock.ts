@@ -48,20 +48,6 @@ export const officialsByLevel: Record<'Federal' | 'State' | 'County' | 'City', {
   ],
 };
 
-export const drop = {
-  date: 'Wed, Oct 21',
-  tag: 'LOCAL · DOVER',
-  title: 'Why your rent near campus could change this year',
-  summary: "Dover City Council is deciding on [topic]. Here's who votes on it, when, and how students can weigh in.",
-  length: '0:58',
-  creator: '[Creator]',
-  source: '[outlet]',
-  pulsePct: 61,
-  pulseAnswered: '[#]',
-};
-
-export const streak = { days: 7, nextMilestone: 14, dsuRank: 14, rankChange: 6, badge: 'Week One' };
-
 export const squad = {
   name: '[Hall name], Floor 3',
   members: 12,
