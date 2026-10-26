@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "Civic App",
+    "slug": "civic-app",
+    "scheme": "civicapp",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#FFFCF2",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.miketabbi.civicapp"
+    },
+    "android": {
+      "package": "com.miketabbi.civicapp",
+      "adaptiveIcon": {
+        "backgroundColor": "#EB5E28"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      "expo-font",
+      "expo-secure-store",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FFFCF2",
+          "dark": {
+            "backgroundColor": "#252422"
+          }
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
