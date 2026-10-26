@@ -6,6 +6,11 @@
  * candidate list on 2026-10-25. Where the two disagreed, the official list wins
  * (see the NOTE comments). Withdrawn candidates are left out.
  *
+ * Incumbent flags: legislative seats checked against the General Assembly district
+ * lists (legis.delaware.gov) on 2026-10-25; other offices from WHYY and the office's
+ * own site. Websites come from the official list; ones that failed to load for
+ * everyone (bad SSL or no response) on 2026-10-25 are left out.
+ *
  * Nonpartisan: candidates are sorted by last name in `sortedCandidates`, never by
  * party, and party is plain text only.
  */
@@ -127,10 +132,11 @@ const statewide: Race[] = [
     about: "The Auditor of Accounts checks how state government spends public money and produces the state's annual financial report.",
     aboutSource: 'Delaware Office of the Auditor of Accounts',
     aboutSourceUrl: AUDITOR_URL,
+    // NOTE: WHYY doesn't mark Lydia York as the incumbent; auditor.delaware.gov lists her as State Auditor.
     candidates: [
       c('April Callaway', R),
       c('Austin Cassidy', I, false, 'https://www.votecassidy.org'),
-      c('Lydia York', D, false, 'https://www.lydiayork.com'),
+      c('Lydia York', D, true, 'https://www.lydiayork.com'),
     ],
   }),
 ];
@@ -171,13 +177,15 @@ const stateHouse: Race[] = [
   // NOTE: Shawn L. Dottery's website field on the official list is ambiguous, so no link is shown.
   house('3', [c('Branden Fletcher-Dominguez', D), c('Shawn L. Dottery', R), c('Dexter "Dizzy" Bland', I)]),
   house('4', [c('Gregg Lindner', D, false, 'https://lindner4delaware.com'), c('Dan Zitofsky', R, false, 'https://votezitofsky.com')]),
-  house('5', [c('Kendra Johnson', D, true, 'https://kendrafordelaware.com')]),
+  // NOTE: kendrafordelaware.com (official list) fails with an invalid SSL certificate, so no link is shown.
+  house('5', [c('Kendra Johnson', D, true)]),
   house('6', [c('Rachel "Rae" Krantz', D, false, 'https://www.raefordelaware.com'), c('Tanya Hettler', R)]),
   house('7', [c('Larry Lambert', D, true, 'https://larryfordelaware.com'), c('Shane Stoneman', R)]),
   house('8', [c('Sherae’a "Rae" Moore', D, true, 'https://www.mooreforde.com'), c('Gary Taylor', R, false, 'https://www.Taylor4de.com')]),
   house('9', [c('Ayanna Khan-Flowers', D, false, 'https://ElectAyanna.com'), c('Jamar Money', R, false, 'https://www.jamarforde.com')]),
   house('10', [c('Melanie Ross Levin', D, true, 'https://www.MelanieRossLevin.com'), c('Dolores Dunleavy', R)]),
-  house('11', [c('Tori Parker', D, false, 'https://www.pleasevoteparker.com'), c('Jeffrey N. Spiegelman', R, true, 'https://www.jeffderepresentative.com/')]),
+  // NOTE: jeffderepresentative.com (official list) fails with an SSL error, so no link is shown.
+  house('11', [c('Tori Parker', D, false, 'https://www.pleasevoteparker.com'), c('Jeffrey N. Spiegelman', R, true)]),
   house('12', [c('Krista Griffith', D, true, 'https://www.kristagriffith.com'), c('Steve Pickering', R, false, 'https://www.picksteve4delaware.com')]),
   house('13', [c('DeShanna U. Neal', D, true, 'https://www.deshanna4district13.com')]),
   house('14', [c('Claire Snyder-Hall', D, true, 'https://clairesnyderhall.com'), c('Mike Simpler', R, false, 'https://MikeforDelaware.com')]),
@@ -190,8 +198,8 @@ const stateHouse: Race[] = [
   house('21', [c('Frank Burns', D, true, 'https://www.changeforthe21st.org')]),
   house('22', [c('Alex Green', D, false, 'https://www.alexgreenfordelaware.com'), c('Mike Smith', R, true, 'https://www.MikeSmithforDelaware.com')]),
   house('23', [c('Dave Redlawsk', D, false, 'https://www.davefor23.com')]),
-  // NOTE: WHYY does not mark Ed Osienski as the incumbent; left as listed.
-  house('24', [c('Ed Osienski', D, false, 'https://GoEddieO.org'), c('Stephen P. Ondich', R)]),
+  // NOTE: WHYY doesn't mark Ed Osienski as the incumbent; legis.delaware.gov lists him in District 24 (House, 2010 to present).
+  house('24', [c('Ed Osienski', D, true, 'https://GoEddieO.org'), c('Stephen P. Ondich', R)]),
   house('25', [c('Cyndie Romer', D, true, 'https://www.romerfordelaware.com')]),
   house('26', [c('Madinah Wilson-Anton', D, true, 'https://www.madinahfordelaware.com')]),
   house('27', [c('Eric Morrison', D, true), c('Mary "Penny" Kubin', R)]),
@@ -199,7 +207,8 @@ const stateHouse: Race[] = [
   house('29', [c('William Bush', D, true)]),
   // NOTE: WHYY says "Incumbent Democrat Shannon Morris"; the official list has "Wm Shannon Morris", Republican.
   house('30', [c('Wm Shannon Morris', R, true)]),
-  house('31', [c('Sean M. Lynn', D, false, 'https://WinWithLynn.org'), c('Anton Brogden', R)]),
+  // NOTE: WHYY doesn't mark Sean M. Lynn as the incumbent; legis.delaware.gov lists him in District 31.
+  house('31', [c('Sean M. Lynn', D, true, 'https://WinWithLynn.org'), c('Anton Brogden', R)]),
   house('32', [c('Kerri Evelyn Harris', D, true, 'https://www.kerrifordelaware.com/')]),
   house('33', [c('Joshua Pennington', D), c('Morgan Hudson', R)]),
   house('34', [c('Annie Norman', D), c('Lyndon D. Yearick', R, true, 'https://lyearickfordelaware.com/')]),
@@ -227,9 +236,8 @@ const county = (id: string, office: string, cty: County, district: string | null
 
 const countyRaces: Race[] = [
   county('ncc-sheriff', 'New Castle County Sheriff', 'New Castle', null, SHERIFF_ABOUT, [c('Scott Phillips', D, true)]),
-  county('ncc-recorder', 'New Castle County Recorder of Deeds', 'New Castle', null, DEEDS_ABOUT, [
-    c('David Tackett', D, false, 'https://www.tackett4deeds.netlify.app'),
-  ]),
+  // NOTE: the official list's www.tackett4deeds.netlify.app fails (certificate error), so no link is shown.
+  county('ncc-recorder', 'New Castle County Recorder of Deeds', 'New Castle', null, DEEDS_ABOUT, [c('David Tackett', D)]),
   county('ncc-wills', 'New Castle County Register of Wills', 'New Castle', null, WILLS_ABOUT, [c('Ciro Poppiti', D, true)]),
   county('ncc-council-1', 'New Castle County Council, District 1', 'New Castle', '1', NCC_COUNCIL_ABOUT, [c('Brandon Toole', D, true, 'https://www.brandon4de.com')]),
   county('ncc-council-2', 'New Castle County Council, District 2', 'New Castle', '2', NCC_COUNCIL_ABOUT, [
@@ -254,6 +262,8 @@ const countyRaces: Race[] = [
   ]),
   // NOTE: WHYY writes "Frank E. Coleman"; official list has "Frank E Coleman".
   county('kent-levy-at-large', 'Kent County Levy Court, At-Large', 'Kent', null, LEVY_ABOUT, [c('Terry L. Pepper', D, true), c('Frank E Coleman', R)]),
+  // TODO: Levy Court district races (2, 4, 6) never show yet. They need Kent County's Levy Court district map;
+  // the Census geocoder doesn't return Levy Court districts, so Districts.countyDistrict is always unknown.
   county('kent-levy-2', 'Kent County Levy Court, District 2', 'Kent', '2', LEVY_ABOUT, [c('Jeff Hall', D, true)]),
   county('kent-levy-4', 'Kent County Levy Court, District 4', 'Kent', '4', LEVY_ABOUT, [c('Robert "Bobby" Scott', R, true)]),
   county('kent-levy-6', 'Kent County Levy Court, District 6', 'Kent', '6', LEVY_ABOUT, [c('Paul Hertz', R, true)]),

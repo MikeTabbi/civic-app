@@ -12,6 +12,7 @@ import {
   TextInput,
   View,
   type StyleProp,
+  type SwitchProps,
   type TextInputProps,
   type TextProps,
   type TextStyle,
@@ -346,6 +347,8 @@ export function ToggleRow({
   onValueChange: (v: boolean) => void;
 }) {
   const { t } = useTheme();
+  // react-native-web colors the "on" thumb with activeThumbColor (default teal) and ignores thumbColor there.
+  const webColors = Platform.OS === 'web' ? ({ activeThumbColor: '#FFFFFF', activeTrackColor: t.accent } as Partial<SwitchProps>) : null;
   return (
     <Pressable
       accessibilityRole="switch"
@@ -364,6 +367,7 @@ export function ToggleRow({
         trackColor={{ false: t.empty, true: t.accent }}
         thumbColor="#FFFFFF"
         ios_backgroundColor={t.empty}
+        {...webColors}
       />
     </Pressable>
   );
