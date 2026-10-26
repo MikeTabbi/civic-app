@@ -3,14 +3,14 @@ import { View } from 'react-native';
 
 import { Avatar, Button, Card, Row, Screen, Segmented, T } from '@/components/ui';
 import { me } from '@/data/mock';
-import { useOnboarding } from '@/state/OnboardingProvider';
+import { useProfile } from '@/state/ProfileProvider';
 import { useTheme, type AppearancePref } from '@/theme/ThemeProvider';
 import { radius } from '@/theme/tokens';
 
 /** Me tab: public profile on top, private stuff clearly marked, settings at the bottom. */
 export default function Me() {
   const { t, appearance, setAppearance } = useTheme();
-  const { reset } = useOnboarding();
+  const { reset } = useProfile();
 
   return (
     <Screen>

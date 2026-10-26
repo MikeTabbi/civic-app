@@ -6,7 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { OnboardingProvider, useOnboarding } from '@/state/OnboardingProvider';
+import { ProfileProvider, useProfile } from '@/state/ProfileProvider';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -24,9 +24,9 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <OnboardingProvider>
+        <ProfileProvider>
           <RootStack fontsLoaded={fontsLoaded} />
-        </OnboardingProvider>
+        </ProfileProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );
@@ -34,7 +34,8 @@ export default function RootLayout() {
 
 function RootStack({ fontsLoaded }: { fontsLoaded: boolean }) {
   const { t } = useTheme();
-  const { ready, onboarded } = useOnboarding();
+  const { ready, profile } = useProfile();
+  const onboarded = profile.onboarded;
   const loaded = fontsLoaded && ready;
 
   useEffect(() => {

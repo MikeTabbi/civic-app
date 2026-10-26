@@ -1,12 +1,18 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { ComponentProps, ReactNode } from 'react';
 import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
+  TextInput,
   View,
   type StyleProp,
+  type TextInputProps,
   type TextProps,
   type TextStyle,
   type ViewStyle,
@@ -36,7 +42,11 @@ export function Screen({
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: t.bg }}>
       {scroll ? (
-        <ScrollView contentContainerStyle={[{ paddingTop: space.md }, inner]}>{children}</ScrollView>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={[{ paddingTop: space.md, flexGrow: 1 }, inner]}>
+            {children}
+          </ScrollView>
+        </KeyboardAvoidingView>
       ) : (
         <View style={[{ flex: 1, paddingTop: space.md }, inner]}>{children}</View>
       )}
@@ -160,19 +170,26 @@ export function Button({
   kind = 'primary',
   icon,
   style,
+  disabled = false,
+  loading = false,
 }: {
   label: string;
   onPress?: () => void;
   kind?: 'primary' | 'dark' | 'quiet';
   icon?: IconName;
   style?: StyleProp<ViewStyle>;
+  disabled?: boolean;
+  loading?: boolean;
 }) {
   const { t } = useTheme();
   const bg = kind === 'primary' ? t.accent : kind === 'dark' ? t.text : t.sub;
   const fg = kind === 'primary' ? t.onAccent : kind === 'dark' ? t.bg : t.text;
+  const off = disabled || loading;
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityState={{ disabled: off, busy: loading }}
+      disabled={off}
       onPress={onPress}
       style={({ pressed }) => [
         {
@@ -184,12 +201,12 @@ export function Button({
           justifyContent: 'center',
           gap: space.sm,
           paddingHorizontal: space.lg,
-          opacity: pressed ? 0.85 : 1,
+          opacity: disabled ? 0.45 : pressed ? 0.85 : 1,
         },
         style,
       ]}
     >
-      {icon ? <Ionicons name={icon} size={18} color={fg} /> : null}
+      {loading ? <ActivityIndicator color={fg} /> : icon ? <Ionicons name={icon} size={18} color={fg} /> : null}
       <Text style={{ fontFamily: fonts.bodyHeavy, fontSize: 15, color: fg }}>{label}</Text>
     </Pressable>
   );
@@ -254,6 +271,121 @@ export function SourceTag({ source }: { source: string }) {
     <T variant="caption" tone="faint">
       Source: {source}
     </T>
+  );
+}
+
+/* ---------- Forms ---------- */
+
+export function TextField({
+  label,
+  value,
+  onChangeText,
+  placeholder,
+  error,
+  hint,
+  ...rest
+}: Omit<TextInputProps, 'style'> & { label: string; error?: string | null; hint?: string }) {
+  const { t } = useTheme();
+  return (
+    <View style={{ gap: 6 }}>
+      <T variant="label">{label}</T>
+      <TextInput
+        {...rest}
+        accessibilityLabel={label}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={t.faint}
+        style={{
+          minHeight: 52,
+          borderRadius: radius.md,
+          borderWidth: error ? 2 : 1,
+          borderColor: error ? t.accent : t.line,
+          backgroundColor: t.surface,
+          color: t.text,
+          paddingHorizontal: 16,
+          fontFamily: fonts.bodyMedium,
+          fontSize: 16,
+        }}
+      />
+      {error ? (
+        <T variant="caption" tone="accent">{error}</T>
+      ) : hint ? (
+        <T variant="caption" tone="faint">{hint}</T>
+      ) : null}
+    </View>
+  );
+}
+
+export function StepHeader({ step, total = 3, onBack }: { step: number; total?: number; onBack?: () => void }) {
+  const { t } = useTheme();
+  return (
+    <View style={{ gap: 12 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44 }}>
+        {onBack ? <IconButton icon="chevron-back" label="Back" onPress={onBack} /> : <T variant="heading">[App name]</T>}
+        <T variant="caption" tone="faint">Step {step} of {total}</T>
+      </View>
+      <View style={{ flexDirection: 'row', gap: 4 }}>
+        {Array.from({ length: total }).map((_, i) => (
+          <View key={i} style={{ flex: 1, height: 4, borderRadius: 2, backgroundColor: i < step ? t.accent : t.empty }} />
+        ))}
+      </View>
+    </View>
+  );
+}
+
+export function ToggleRow({
+  title,
+  subtitle,
+  value,
+  onValueChange,
+}: {
+  title: string;
+  subtitle?: string;
+  value: boolean;
+  onValueChange: (v: boolean) => void;
+}) {
+  const { t } = useTheme();
+  return (
+    <Pressable
+      accessibilityRole="switch"
+      accessibilityState={{ checked: value }}
+      accessibilityLabel={title}
+      onPress={() => onValueChange(!value)}
+      style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12 }}
+    >
+      <View style={{ flex: 1 }}>
+        <T variant="label">{title}</T>
+        {subtitle ? <T variant="caption" tone="faint">{subtitle}</T> : null}
+      </View>
+      <Switch
+        value={value}
+        onValueChange={onValueChange}
+        trackColor={{ false: t.empty, true: t.accent }}
+        thumbColor="#FFFFFF"
+        ios_backgroundColor={t.empty}
+      />
+    </Pressable>
+  );
+}
+
+export function Notice({ tone = 'info', children }: { tone?: 'info' | 'warn' | 'good'; children: ReactNode }) {
+  const { t } = useTheme();
+  const icon: IconName = tone === 'good' ? 'checkmark-circle' : tone === 'warn' ? 'alert-circle' : 'information-circle';
+  const color = tone === 'good' ? t.done : tone === 'warn' ? t.accentText : t.faint;
+  return (
+    <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start', padding: 12, borderRadius: radius.md, backgroundColor: tone === 'warn' ? t.accentTint : t.sub }}>
+      <Ionicons name={icon} size={18} color={color} style={{ marginTop: 1 }} />
+      <View style={{ flex: 1, gap: 4 }}>{children}</View>
+    </View>
+  );
+}
+
+export function TextLink({ label, onPress }: { label: string; onPress: () => void }) {
+  return (
+    <Pressable accessibilityRole="link" onPress={onPress} hitSlop={8}>
+      <T variant="label" tone="accent" style={{ textDecorationLine: 'underline' }}>{label}</T>
+    </Pressable>
   );
 }
 
