@@ -85,6 +85,16 @@ const ABSENTEE_APPLICATION: DropSource = {
   outlet: 'Delaware Department of Elections',
 };
 const IVOTE: DropSource = { title: 'iVote: apply for an absentee ballot', url: IVOTE_URL, outlet: 'Delaware Department of Elections' };
+const GENERAL_ELECTION_INFO: DropSource = {
+  title: '2026 General Election information',
+  url: 'https://elections.delaware.gov/elections/general/general.html',
+  outlet: 'Delaware Department of Elections',
+};
+const ABSENTEE_CITIZEN: DropSource = {
+  title: 'Absentee voting for Delaware citizens',
+  url: 'https://elections.delaware.gov/voter/absentee/citizen.html',
+  outlet: 'Delaware Department of Elections',
+};
 const WHYY_TREASURER: DropSource = {
   title: 'These 3 Democrats are hoping to replace Treasurer Colleen Davis',
   url: 'https://whyy.org/articles/election-2026-delaware-primary-treasurer-voter-guide/',
@@ -182,6 +192,11 @@ export const drops: Drop[] = [
         source: 1,
       },
       {
+        title: 'Or vote absentee in person',
+        body: 'You can also vote absentee in person at your county Department of Elections office until noon on Mon, Nov 2.',
+        source: 3,
+      },
+      {
         title: 'Get it back on time',
         body: 'Your completed ballot must reach your county election office by 8 p.m. on Election Day, Nov. 3. A postmark does not count, and you cannot drop it off at an early voting site or polling place.',
         source: 1,
@@ -204,7 +219,7 @@ export const drops: Drop[] = [
       explanation: 'Absentee ballots must be received by your county election office by 8 p.m. on Election Day. Postmarks do not count.',
       source: 0,
     },
-    sources: [WHYY_GUIDE, ABSENTEE_APPLICATION, IVOTE],
+    sources: [WHYY_GUIDE, ABSENTEE_APPLICATION, IVOTE, GENERAL_ELECTION_INFO, ABSENTEE_CITIZEN],
     reviewed: true,
   },
   {
@@ -446,7 +461,7 @@ export const drops: Drop[] = [
 /** Claims flagged for checking before `reviewed` was set. Checked 2026-10-26; kept as a record. */
 export const NEEDS_CHECK = [
   'Oct 28: "student" reason, the 4-day mailing rule and "cannot be returned at early voting sites or polling places" are from absentee application ABFM004 v4.0 (11/10/2025). The Oct. 30 date is from the WHYY guide and matches 4 days before Nov. 3.',
-  'Oct 28: some sites list a Nov. 2 noon deadline for email, fax or in-person requests; left out until confirmed.',
+  'Oct 28: some sites list a Nov. 2 noon deadline for email, fax or in-person requests. Resolved 2026-10-26: the state general election page says absentee ballots are issued until "Monday, November 2, 2026, at noon" and the citizen absentee page says "Before 12 Noon the day before the election"; added as the in-person absentee card. The Oct. 30 deadline still applies to mailed ballots.',
   'Oct 29: Michael Ramone\'s background ("former state representative and state House minority leader") is from WHYY\'s Aug. 25 primary guide.',
   'Oct 30: no vote count is given. Lewis\'s no votes on May 20 and June 8 come from his own Bay to Bay News column (an opinion piece, so the dates are his account). The 40% tax-exempt figure is from Spotlight, May 22.',
   'Oct 31: "hadn\'t advanced as of August," the DHA opposition and "politically impossible" are from Delaware Public Media, Aug. 11. No later reporting found as of 2026-10-25.',
