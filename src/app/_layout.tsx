@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { BallotProvider, useBallot } from '@/state/BallotProvider';
+import { FollowProvider, useFollows } from '@/state/FollowProvider';
 import { ProfileProvider, useProfile } from '@/state/ProfileProvider';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 
@@ -27,7 +28,9 @@ export default function RootLayout() {
       <ThemeProvider>
         <ProfileProvider>
           <BallotProvider>
-            <RootStack fontsLoaded={fontsLoaded} />
+            <FollowProvider>
+              <RootStack fontsLoaded={fontsLoaded} />
+            </FollowProvider>
           </BallotProvider>
         </ProfileProvider>
       </ThemeProvider>
@@ -39,8 +42,9 @@ function RootStack({ fontsLoaded }: { fontsLoaded: boolean }) {
   const { t } = useTheme();
   const { ready, profile } = useProfile();
   const ballot = useBallot();
+  const follows = useFollows();
   const onboarded = profile.onboarded;
-  const loaded = fontsLoaded && ready && ballot.ready;
+  const loaded = fontsLoaded && ready && ballot.ready && follows.ready;
 
   useEffect(() => {
     if (loaded) SplashScreen.hideAsync().catch(() => {});
@@ -58,6 +62,7 @@ function RootStack({ fontsLoaded }: { fontsLoaded: boolean }) {
           <Stack.Screen name="celebrate" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
           <Stack.Screen name="leaderboard" />
           <Stack.Screen name="race/[id]" />
+          <Stack.Screen name="official/[id]" />
           <Stack.Screen name="plan" />
           <Stack.Screen name="address" options={{ presentation: 'modal' }} />
         </Stack.Protected>

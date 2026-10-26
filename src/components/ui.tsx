@@ -105,22 +105,26 @@ export function Card({
   );
 }
 
-export function Chip({ label, active = false }: { label: string; active?: boolean }) {
+/** A label pill. Pass `onPress` to make it a filter toggle. */
+export function Chip({ label, active = false, onPress }: { label: string; active?: boolean; onPress?: () => void }) {
   const { t } = useTheme();
+  const text = (
+    <T variant="eyebrow" style={{ color: active ? t.bg : t.muted }}>
+      {label}
+    </T>
+  );
+  const base: ViewStyle = { alignSelf: 'flex-start', borderRadius: radius.pill, paddingHorizontal: 12, backgroundColor: active ? t.text : t.sub };
+  if (!onPress) return <View style={[base, { paddingVertical: 6 }]}>{text}</View>;
   return (
-    <View
-      style={{
-        alignSelf: 'flex-start',
-        borderRadius: radius.pill,
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        backgroundColor: active ? t.text : t.sub,
-      }}
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+      onPress={onPress}
+      hitSlop={4}
+      style={({ pressed }) => [base, { minHeight: 36, justifyContent: 'center', opacity: pressed ? 0.85 : 1 }]}
     >
-      <T variant="eyebrow" style={{ color: active ? t.bg : t.muted }}>
-        {label}
-      </T>
-    </View>
+      {text}
+    </Pressable>
   );
 }
 
@@ -173,6 +177,7 @@ export function Button({
   style,
   disabled = false,
   loading = false,
+  accessibilityLabel,
 }: {
   label: string;
   onPress?: () => void;
@@ -181,6 +186,7 @@ export function Button({
   style?: StyleProp<ViewStyle>;
   disabled?: boolean;
   loading?: boolean;
+  accessibilityLabel?: string;
 }) {
   const { t } = useTheme();
   const bg = kind === 'primary' ? t.accent : kind === 'dark' ? t.text : t.sub;
@@ -189,6 +195,7 @@ export function Button({
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled: off, busy: loading }}
       disabled={off}
       onPress={onPress}
@@ -249,7 +256,19 @@ export function ProgressBar({ value, color, track }: { value: number; color?: st
   );
 }
 
-export function Avatar({ size = 44, ring, label }: { size?: number; ring?: string; label?: string }) {
+/** Initials for an avatar: first and last name, skipping nicknames, suffixes and middle initials. */
+export function initialsOf(name: string) {
+  const parts = name
+    .replace(/"[^"]*"/g, '')
+    .replace(/,/g, ' ')
+    .split(/\s+/)
+    .filter((p) => p && !/^(jr|sr|ii|iii|iv|ph\.?d)\.?$/i.test(p) && !/^[A-Z]\.?$/.test(p));
+  const first = parts[0]?.[0] ?? '';
+  const last = parts.length > 1 ? parts[parts.length - 1][0] : '';
+  return (first + last).toUpperCase();
+}
+
+export function Avatar({ size = 44, ring, label, initials }: { size?: number; ring?: string; label?: string; initials?: string }) {
   const { t } = useTheme();
   return (
     <View
@@ -261,8 +280,14 @@ export function Avatar({ size = 44, ring, label }: { size?: number; ring?: strin
         backgroundColor: t.avatar,
         borderWidth: ring ? 3 : 0,
         borderColor: ring,
+        alignItems: 'center',
+        justifyContent: 'center',
       }}
-    />
+    >
+      {initials ? (
+        <Text style={{ fontFamily: fonts.bodyHeavy, fontSize: Math.round(size * 0.34), color: t.text }}>{initials}</Text>
+      ) : null}
+    </View>
   );
 }
 
