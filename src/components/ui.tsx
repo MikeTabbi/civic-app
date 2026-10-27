@@ -23,6 +23,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { APP_SHORT_NAME } from '@/lib/brand';
 import { useTheme } from '@/theme/ThemeProvider';
 import { fonts, radius, space } from '@/theme/tokens';
+import { PressableScale } from './PressableScale';
 
 export type IconName = ComponentProps<typeof Ionicons>['name'];
 
@@ -190,17 +191,17 @@ export function Button({
   accessibilityLabel?: string;
 }) {
   const { t } = useTheme();
-  const bg = kind === 'primary' ? t.accent : kind === 'dark' ? t.text : t.sub;
-  const fg = kind === 'primary' ? t.onAccent : kind === 'dark' ? t.bg : t.text;
+  const bg = kind === 'primary' ? t.primary.bg : kind === 'dark' ? t.text : t.sub;
+  const fg = kind === 'primary' ? t.primary.fg : kind === 'dark' ? t.bg : t.text;
   const off = disabled || loading;
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled: off, busy: loading }}
       disabled={off}
       onPress={onPress}
-      style={({ pressed }) => [
+      style={[
         {
           minHeight: 52,
           borderRadius: radius.md,
@@ -210,14 +211,14 @@ export function Button({
           justifyContent: 'center',
           gap: space.sm,
           paddingHorizontal: space.lg,
-          opacity: disabled ? 0.45 : pressed ? 0.85 : 1,
+          opacity: off ? 0.45 : 1,
         },
         style,
       ]}
     >
       {loading ? <ActivityIndicator color={fg} /> : icon ? <Ionicons name={icon} size={18} color={fg} /> : null}
       <Text style={{ fontFamily: fonts.bodyHeavy, fontSize: 15, color: fg }}>{label}</Text>
-    </Pressable>
+    </PressableScale>
   );
 }
 
