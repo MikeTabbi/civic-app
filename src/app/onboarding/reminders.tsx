@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Platform, Pressable, View } from 'react-native';
 
+import { AccentHeading } from '@/components/AccentHeading';
 import { Button, Card, Notice, Screen, SourceTag, StepHeader, T, ToggleRow } from '@/components/ui';
 import { generalElection2026 as E } from '@/data/delaware';
 import { formatReminderTime, reminderChoices, requestNotificationPermission, syncReminders } from '@/lib/reminders';
@@ -36,7 +37,7 @@ export default function Reminders() {
   return (
     <Screen style={{ gap: 16 }}>
       <StepHeader step={3} onBack={() => router.back()} />
-      <T variant="title" style={{ marginTop: 8 }}>Never miss a deadline</T>
+      <AccentHeading accent="deadline" style={{ marginTop: 8, fontSize: 28, lineHeight: 32 }}>Never miss a deadline</AccentHeading>
       <T tone="muted">We'll only send the reminders you pick. Election Day is {new Date(E.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}.</T>
 
       <Card>

@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
+import { AccentHeading } from '@/components/AccentHeading';
 import { Avatar, Button, Card, IconButton, Notice, Row, Screen, Segmented, T, ToggleRow } from '@/components/ui';
 import { accountsEnabled } from '@/lib/auth';
 import { squadBoard, streakBoard, type SquadEntry, type SquadScope, type StreakEntry, type StreakScope } from '@/lib/squads';
@@ -29,7 +30,7 @@ export default function Leaderboard() {
     <Screen>
       <Row style={{ justifyContent: 'space-between' }}>
         <IconButton icon="chevron-back" label="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/squad'))} />
-        <T variant="heading">Leaderboards</T>
+        <AccentHeading accent="Leaderboards" style={{ fontSize: 24, lineHeight: 27 }}>Leaderboards</AccentHeading>
         <View style={{ width: 44 }} />
       </Row>
 

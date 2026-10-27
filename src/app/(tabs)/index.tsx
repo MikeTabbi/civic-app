@@ -1,12 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback } from 'react';
-import { Linking, Pressable, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { Linking, ScrollView, View } from 'react-native';
 
-import { Button, Card, Notice, ProgressBar, Row, Screen, SourceTag, T, TextLink } from '@/components/ui';
+import { AccentHeading } from '@/components/AccentHeading';
+import { LevelGroup, type CivicLevel } from '@/components/LevelGroup';
+import { PressableScale } from '@/components/PressableScale';
+import { Sheet } from '@/components/Sheet';
+import { Button, Notice, Row, Screen, SourceTag, T, TextLink } from '@/components/ui';
 import { levelLabel, racesForDistricts, type Race, type RaceLevel } from '@/data/ballot2026';
 import { generalElection2026 as E, IVOTE_URL, SAMPLE_BALLOT_URL, VOTING_LOCATIONS_URL, daysUntil, parseLocalDate } from '@/data/delaware';
-import { formatDay, formatTime, hasCompletePlan, methodLabel, planSteps } from '@/lib/votingPlan';
+import { useNow } from '@/lib/useNow';
+import { formatDay, hasCompletePlan, planSteps } from '@/lib/votingPlan';
 import { useBallot } from '@/state/BallotProvider';
 import { useProfile } from '@/state/ProfileProvider';
 import { useSquads } from '@/state/SquadProvider';
@@ -46,38 +51,54 @@ function upcomingDeadlines(now = new Date()) {
   ].filter((d) => d.ends > now);
 }
 
-/** Ballot tab: countdown, progress through races, voting plan, deadlines, race list. */
+const levelKey = (level: RaceLevel): CivicLevel => (level === 'county' ? 'local' : level);
+
 export default function Ballot() {
   const { t } = useTheme();
+  const now = useNow();
   const { profile } = useProfile();
   const { explored } = useBallot();
+  const [deadlinesOpen, setDeadlinesOpen] = useState(false);
   const ballot = racesForDistricts(profile.districts);
   const done = ballot.races.filter((r) => explored[r.id]).length;
-  const days = daysUntil(E.date);
-  const deadlines = upcomingDeadlines();
+  const days = daysUntil(E.date, now);
+  const deadlines = upcomingDeadlines(now);
   const outOfState = !!profile.districts && profile.districts.state !== 'DE';
   const openAddress = () => router.push({ pathname: '/address', params: { mode: 'edit' } });
 
   return (
     <Screen>
-      <T variant="eyebrow" tone="accent">General Election · {formatDay(E.date)}</T>
-      <Row style={{ justifyContent: 'space-between', alignItems: 'flex-end' }}>
-        <T variant="title">Your ballot</T>
+      <Row style={{ justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 4 }}>
+        <View style={{ flex: 1, gap: 3 }}>
+          <T variant="eyebrow" tone="accent">General election · {formatDay(E.date)}</T>
+          <AccentHeading accent="ballot">Your ballot</AccentHeading>
+        </View>
         <View style={{ alignItems: 'flex-end' }} accessible accessibilityLabel={days > 0 ? `${days} days until Election Day` : 'Election Day is today'}>
-          <T variant="display" style={{ fontSize: 40, lineHeight: 42 }}>{days > 0 ? days : 'Today'}</T>
-          {days > 0 ? <T variant="caption" tone="faint">{days === 1 ? 'day' : 'days'}</T> : null}
+          <T variant="display" style={{ fontSize: 42, lineHeight: 42 }}>{days > 0 ? days : 'Today'}</T>
+          {days > 0 ? <T variant="caption" tone="faint">days left</T> : null}
         </View>
       </Row>
 
-      <Card tone="sub">
-        <T variant="label">
-          {done} of {ballot.races.length} <T variant="label" tone="muted">races explored. Finish your ballot before Election Day.</T>
-        </T>
-        <ProgressBar value={ballot.races.length ? done / ballot.races.length : 0} color={t.done} />
-      </Card>
+      <PlanHero />
+
+      {deadlines.length ? (
+        <PressableScale
+          accessibilityRole="button"
+          accessibilityLabel={`Next deadline: ${deadlines[0].title}. Open all deadlines.`}
+          onPress={() => setDeadlinesOpen(true)}
+          style={{ minHeight: 54, flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: radius.pill, paddingHorizontal: 16, backgroundColor: t.surface, borderWidth: 1, borderColor: t.line }}
+        >
+          <Ionicons name="time-outline" size={20} color={t.accentText} />
+          <View style={{ flex: 1 }}>
+            <T variant="caption" tone="faint">Next deadline</T>
+            <T variant="label" numberOfLines={1}>{deadlines[0].title} · {deadlines[0].detail}</T>
+          </View>
+          <Ionicons name="chevron-up" size={18} color={t.faint} />
+        </PressableScale>
+      ) : null}
 
       {!ballot.known ? (
-        <Card tone="tint">
+        <View style={{ gap: 8, padding: 16, borderRadius: radius.lg, backgroundColor: t.accentTint }}>
           <T variant="heading">{outOfState ? 'Your address is outside Delaware' : 'Add your address to see your full ballot'}</T>
           <T tone="muted">
             {outOfState
@@ -85,32 +106,18 @@ export default function Ballot() {
               : "You're seeing statewide races. Your address adds your State Senate, State House and county races. It stays private."}
           </T>
           <Button label={outOfState ? 'Change address' : 'Add address'} icon="location" onPress={openAddress} />
-        </Card>
+        </View>
       ) : null}
 
       <SquadNudge />
-      <PlanCard />
 
-      {deadlines.length ? (
-        <Card>
-          <T variant="heading">Deadlines</T>
-          {deadlines.map((d) => (
-            <View key={d.id} style={{ gap: 2 }}>
-              <T variant="label">{d.title}</T>
-              <T variant="caption" tone="muted">{d.detail}</T>
-            </View>
-          ))}
-          <Row gap={16} style={{ flexWrap: 'wrap', marginTop: 4 }}>
-            <TextLink label="Voting locations" onPress={() => Linking.openURL(VOTING_LOCATIONS_URL)} />
-            <TextLink label="Sample ballot" onPress={() => Linking.openURL(SAMPLE_BALLOT_URL)} />
-            <TextLink label="iVote" onPress={() => Linking.openURL(IVOTE_URL)} />
-          </Row>
-          <SourceTag source="Delaware Department of Elections, WHYY voter guide" />
-        </Card>
-      ) : null}
+      <Row style={{ justifyContent: 'space-between', marginTop: 8 }}>
+        <T variant="heading">{ballot.races.length} races</T>
+        <T variant="label" tone="muted">{done} explored</T>
+      </Row>
 
       {LEVELS.map((level) => {
-        const races = ballot.races.filter((r) => r.level === level);
+        const races = ballot.races.filter((race) => race.level === level);
         const notes: string[] = [];
         if (level === 'state' && ballot.noSenateRace) notes.push('No State Senate race in your district this year.');
         if (level === 'state' && ballot.noHouseRace) notes.push('No State House race in your district this year.');
@@ -121,32 +128,107 @@ export default function Ballot() {
         if (!races.length && !notes.length) return null;
         return (
           <View key={level} style={{ gap: 8 }}>
-            <T variant="eyebrow" tone="faint" style={{ marginTop: 6 }}>{levelLabel[level]}</T>
-            {races.map((r) => (
-              <RaceRow key={r.id} race={r} explored={!!explored[r.id]} />
-            ))}
-            {notes.map((n) => (
-              <Notice key={n}>
-                <T variant="caption" tone="muted">{n}</T>
-              </Notice>
+            {races.length ? (
+              <LevelGroup level={levelKey(level)} label={level === 'county' ? 'Local' : levelLabel[level]} count={races.length}>
+                {races.map((race) => <RaceRow key={race.id} race={race} explored={!!explored[race.id]} />)}
+              </LevelGroup>
+            ) : null}
+            {notes.map((note) => (
+              <Notice key={note}><T variant="caption" tone="muted">{note}</T></Notice>
             ))}
           </View>
         );
       })}
       <SourceTag source="Delaware Department of Elections candidate list" />
+
+      <Sheet visible={deadlinesOpen} onClose={() => setDeadlinesOpen(false)} accessibilityLabel="Election deadlines">
+        <ScrollView contentContainerStyle={{ gap: 16, paddingBottom: 8 }} showsVerticalScrollIndicator={false}>
+          <AccentHeading accent="deadlines" style={{ fontSize: 30, lineHeight: 33 }}>Election deadlines</AccentHeading>
+          {deadlines.map((deadline) => (
+            <Row key={deadline.id} gap={14} style={{ alignItems: 'center' }}>
+              <View style={{ width: 54, minHeight: 58, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: t.sub }}>
+                <T variant="eyebrow" tone="accent">{deadline.ends.toLocaleDateString('en-US', { weekday: 'short' })}</T>
+                <T variant="title" style={{ fontSize: 24, lineHeight: 26 }}>{deadline.ends.getDate()}</T>
+              </View>
+              <View style={{ flex: 1, gap: 2 }}>
+                <T variant="label">{deadline.title}</T>
+                <T variant="caption" tone="muted" numberOfLines={2}>{deadline.detail}</T>
+              </View>
+            </Row>
+          ))}
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            <DeadlineLink label="Voting locations" onPress={() => Linking.openURL(VOTING_LOCATIONS_URL)} />
+            <DeadlineLink label="Sample ballot" onPress={() => Linking.openURL(SAMPLE_BALLOT_URL)} />
+            <DeadlineLink label="iVote" onPress={() => Linking.openURL(IVOTE_URL)} />
+          </View>
+          <SourceTag source="Delaware Department of Elections" />
+        </ScrollView>
+      </Sheet>
     </Screen>
   );
 }
 
-/** "Your squad nudged you": shown until the person's own plan is done. */
+function PlanHero() {
+  const { t } = useTheme();
+  const { plan } = useBallot();
+  const steps = planSteps(plan);
+  const complete = hasCompletePlan(plan);
+  const done = steps.filter((step) => step.done).length;
+  const next = steps.find((step) => !step.done);
+  const copyByStep = {
+    registered: { title: "Check you're registered", accent: 'registered', button: 'Check registration' },
+    method: { title: 'Choose how to vote', accent: 'vote', button: 'Choose how' },
+    where: { title: 'Pick a place to vote', accent: 'place', button: 'Pick a place' },
+    when: { title: 'Pick a time to vote', accent: 'vote', button: 'Pick a time' },
+  } as const;
+  const copy = copyByStep[next?.id as keyof typeof copyByStep] ?? copyByStep.registered;
+
+  return (
+    <View style={{ padding: 20, gap: 14, borderRadius: radius.xl, backgroundColor: t.primary.bg }}>
+      <Row style={{ justifyContent: 'space-between' }}>
+        <T variant="eyebrow" style={{ color: t.primary.fg }}>Next up</T>
+        <T variant="caption" style={{ color: t.primary.fg }}>{done} of {steps.length} plan steps done</T>
+      </Row>
+      <AccentHeading accent={complete ? 'set' : copy.accent} color={t.primary.fg} style={{ fontSize: 30, lineHeight: 33 }}>
+        {complete ? 'Your plan is set' : copy.title}
+      </AccentHeading>
+      <T style={{ color: t.scheme === 'light' ? t.bg : t.primary.fg }} numberOfLines={2}>
+        {plan.shareWithSquad ? 'Private. Your squad only sees that your plan is ready.' : 'Your voting plan stays private and only you can see it.'}
+      </T>
+      <View style={{ flexDirection: 'row', gap: 6 }}>
+        {steps.map((step) => (
+          <View key={step.id} style={{ flex: 1, height: 7, borderRadius: 4, backgroundColor: step.done ? t.lime : t.drop.track }} />
+        ))}
+      </View>
+      {complete ? (
+        <TextLink label="View your plan" onPress={() => router.push('/plan')} />
+      ) : (
+        <PressableScale
+          accessibilityRole="button"
+          accessibilityLabel={copy.button}
+          onPress={() => router.push('/plan')}
+          style={{ alignSelf: 'flex-start', minHeight: 44, borderRadius: radius.pill, paddingHorizontal: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: t.lime }}
+        >
+          <T variant="label" style={{ color: t.forest }}>{copy.button}</T>
+        </PressableScale>
+      )}
+    </View>
+  );
+}
+
+function DeadlineLink({ label, onPress }: { label: string; onPress: () => void }) {
+  const { t } = useTheme();
+  return (
+    <PressableScale accessibilityRole="link" onPress={onPress} style={{ minHeight: 44, borderRadius: radius.pill, paddingHorizontal: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: t.sub }}>
+      <T variant="label">{label}</T>
+    </PressableScale>
+  );
+}
+
 function SquadNudge() {
   const { nudge, refresh } = useSquads();
   const { plan } = useBallot();
-  useFocusEffect(
-    useCallback(() => {
-      refresh();
-    }, [refresh]),
-  );
+  useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
   if (!nudge || hasCompletePlan(plan)) return null;
   return (
     <Notice tone="warn">
@@ -157,94 +239,24 @@ function SquadNudge() {
   );
 }
 
-function PlanCard() {
-  const { t } = useTheme();
-  const { plan } = useBallot();
-  const steps = planSteps(plan);
-  const summary = [
-    plan.method ? methodLabel[plan.method] : null,
-    plan.day ? `${formatDay(plan.day)}${plan.time ? ` at ${formatTime(plan.time)}` : ''}` : null,
-    plan.place.trim() || null,
-  ].filter(Boolean);
-
-  return (
-    <Pressable accessibilityRole="button" accessibilityLabel="Voting plan. Open to edit." onPress={() => router.push('/plan')}>
-      {({ pressed }) => (
-        <Card style={{ opacity: pressed ? 0.85 : 1 }}>
-          <Row style={{ justifyContent: 'space-between' }}>
-            <T variant="heading">Voting plan</T>
-            <Ionicons name="chevron-forward" size={18} color={t.faint} />
-          </Row>
-          {summary.length ? <T variant="label">{summary.join(' · ')}</T> : <T tone="muted">Make a plan: how, where and when you'll vote.</T>}
-          <Row gap={8} style={{ flexWrap: 'wrap' }}>
-            {steps.map((step) => (
-              <View
-                key={step.id}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 6,
-                  borderRadius: radius.pill,
-                  paddingHorizontal: 12,
-                  minHeight: 36,
-                  backgroundColor: step.done ? t.done : t.accentTint,
-                  borderWidth: step.done ? 0 : 1,
-                  borderColor: t.accent,
-                }}
-              >
-                <Ionicons name={step.done ? 'checkmark' : 'time-outline'} size={14} color={step.done ? t.onDone : t.accentText} />
-                <T variant="caption" style={{ color: step.done ? t.onDone : t.accentText }}>{step.label}</T>
-              </View>
-            ))}
-          </Row>
-          <T variant="caption" tone="faint">
-            {plan.shareWithSquad ? 'Private. Your squads only see whether you have a plan.' : 'Private. Only you can see your plan.'}
-          </T>
-        </Card>
-      )}
-    </Pressable>
-  );
-}
-
 function RaceRow({ race, explored }: { race: Race; explored: boolean }) {
   const { t } = useTheme();
-  const count = race.unopposed ? 'Unopposed' : `${race.candidates.length} candidates`;
+  const count = `${race.candidates.length} ${race.candidates.length === 1 ? 'candidate' : 'candidates'}`;
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       accessibilityLabel={`${race.office}, ${count}, ${explored ? 'explored' : 'not explored yet'}`}
       onPress={() => router.push({ pathname: '/race/[id]', params: { id: race.id } })}
-      style={({ pressed }) => ({
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-        padding: 14,
-        borderRadius: radius.md,
-        backgroundColor: explored ? t.surface : t.sub,
-        borderWidth: 1,
-        borderColor: t.line,
-        opacity: pressed ? 0.85 : 1,
-      })}
+      style={{ minHeight: 66, flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10 }}
     >
-      <View style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, backgroundColor: explored ? t.done : t.empty }} />
+      <View style={{ width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: explored ? t.done : 'transparent', borderWidth: explored ? 0 : 2, borderColor: t.emptyBorder }}>
+        {explored ? <Ionicons name="checkmark" size={15} color={t.onDone} /> : null}
+      </View>
       <View style={{ flex: 1 }}>
         <T variant="label">{race.office}</T>
         <T variant="caption" tone="faint">{count}</T>
       </View>
-      <View
-        style={{
-          width: 26,
-          height: 26,
-          borderRadius: 8,
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: explored ? t.done : 'transparent',
-          borderWidth: explored ? 0 : 2,
-          borderColor: t.emptyBorder,
-        }}
-      >
-        {explored ? <Ionicons name="checkmark" size={16} color={t.onDone} /> : null}
-      </View>
-    </Pressable>
+      <Ionicons name="chevron-forward" size={18} color={t.faint} />
+    </PressableScale>
   );
 }

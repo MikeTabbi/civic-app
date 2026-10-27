@@ -2,6 +2,7 @@ import { router, useLocalSearchParams, useSegments } from 'expo-router';
 import { useState } from 'react';
 import { Linking, View } from 'react-native';
 
+import { AccentHeading } from '@/components/AccentHeading';
 import { FollowButton } from '@/components/FollowButton';
 import { Avatar, Button, Card, IconButton, Notice, Row, Screen, SourceTag, T, TextLink, initialsOf, type IconName } from '@/components/ui';
 import { getRace } from '@/data/ballot2026';
@@ -29,7 +30,7 @@ export default function OfficialDetail() {
         <Row style={{ minHeight: 44 }}>
           <IconButton icon="chevron-back" label="Back" onPress={back} />
         </Row>
-        <T variant="title">Official not found</T>
+        <AccentHeading accent="found">Official not found</AccentHeading>
         <T tone="muted">We don't have this official in the app.</T>
       </Screen>
     );
@@ -67,7 +68,7 @@ export default function OfficialDetail() {
         <Avatar size={64} ring={yours ? t.accent : t.emptyBorder} initials={initialsOf(o.name)} />
         <View style={{ flex: 1, gap: 2 }}>
           <T variant="eyebrow" tone="accent">{officialLevelLabel[o.level]}</T>
-          <T variant="title">{o.name}</T>
+          <AccentHeading accent={o.name.trim().split(/\s+/).at(-1) ?? o.name} style={{ fontSize: 30, lineHeight: 33 }}>{o.name}</AccentHeading>
         </View>
       </Row>
       <FollowButton id={o.id} name={o.name} />

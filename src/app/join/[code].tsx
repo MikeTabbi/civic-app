@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 
+import { AccentHeading } from '@/components/AccentHeading';
 import { Button, Card, IconButton, Notice, Row, Screen, T } from '@/components/ui';
 import { formatCode, joinSquad } from '@/lib/squads';
 import { useAuth } from '@/state/AuthProvider';
@@ -46,7 +47,7 @@ export default function JoinFromLink() {
         <IconButton icon="close" label="Close" onPress={close} />
       </Row>
       <T variant="eyebrow" tone="accent">Squad invite</T>
-      <T variant="title">Join a squad</T>
+      <AccentHeading accent="squad">Join a squad</AccentHeading>
       <Card>
         <T variant="caption" tone="faint">Invite code</T>
         <T variant="title" style={{ letterSpacing: 2 }}>{code.length >= 8 ? formatCode(code) : 'Not a valid code'}</T>

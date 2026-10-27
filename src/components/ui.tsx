@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import type { ComponentProps, ReactNode } from 'react';
+import type { ComponentProps, ReactElement, ReactNode } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -33,11 +33,13 @@ export function Screen({
   children,
   scroll = true,
   padded = true,
+  refreshControl,
   style,
 }: {
   children: ReactNode;
   scroll?: boolean;
   padded?: boolean;
+  refreshControl?: ReactElement;
   style?: StyleProp<ViewStyle>;
 }) {
   const { t } = useTheme();
@@ -46,7 +48,7 @@ export function Screen({
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: t.bg }}>
       {scroll ? (
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={[{ paddingTop: space.md, flexGrow: 1 }, inner]}>
+          <ScrollView refreshControl={refreshControl} keyboardShouldPersistTaps="handled" contentContainerStyle={[{ paddingTop: space.md, flexGrow: 1 }, inner]}>
             {children}
           </ScrollView>
         </KeyboardAvoidingView>

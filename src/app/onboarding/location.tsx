@@ -3,6 +3,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
 import { Linking, Pressable, View } from 'react-native';
 
+import { AccentHeading } from '@/components/AccentHeading';
 import { Button, Card, IconButton, Notice, Row, Screen, SourceTag, StepHeader, T, TextLink } from '@/components/ui';
 import { DSU_ADDRESS, VOTE_GOV_URL } from '@/data/delaware';
 import { AddressSearch } from '@/components/AddressSearch';
@@ -114,9 +115,7 @@ export default function Location() {
       ) : (
         <StepHeader step={2} onBack={() => router.back()} />
       )}
-      <T variant="display" style={{ marginTop: 8 }}>
-        Where do you <T variant="display" tone="accent">vote</T>?
-      </T>
+      <AccentHeading accent="vote" style={{ marginTop: 8, fontSize: 36, lineHeight: 38 }}>Where do you vote?</AccentHeading>
       <T tone="muted">Campus or back home. Your ballot, reps and deadlines follow this choice.</T>
 
       <View style={{ flexDirection: 'row', gap: 12 }}>

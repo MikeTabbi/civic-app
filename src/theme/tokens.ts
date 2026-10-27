@@ -12,7 +12,7 @@ export type ThemeTokens = {
   muted: string;
   faint: string;
   accent: string;
-  /** Orange that passes contrast when used as text on bg/surface. */
+  /** Accent tone that passes contrast when used as text on bg/surface. */
   accentText: string;
   onAccent: string;
   accentTint: string;

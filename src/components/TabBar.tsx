@@ -7,6 +7,7 @@ import { dropForDate } from '@/data/drops';
 import { useStreak } from '@/state/StreakProvider';
 import { useTheme } from '@/theme/ThemeProvider';
 import { fonts } from '@/theme/tokens';
+import { PressableScale } from './PressableScale';
 import type { IconName } from './ui';
 
 const TABS: Record<string, { label: string; icon: IconName; iconOn: IconName }> = {
@@ -17,8 +18,7 @@ const TABS: Record<string, { label: string; icon: IconName; iconOn: IconName }> 
 };
 
 /**
- * v8 tab bar: Ballot · Map · [Drop] · Squad · Me.
- * The Drop sits in the middle as a raised orange button and opens full-screen.
+ * Ballot · Map · [Drop] · Squad · Me.
  */
 export function TabBar({ state, navigateToTab, insets }: BottomTabBarProps) {
   const { t } = useTheme();
@@ -53,7 +53,7 @@ export function TabBar({ state, navigateToTab, insets }: BottomTabBarProps) {
       style={{
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: t.bg,
+        backgroundColor: 'transparent',
         borderTopWidth: 1,
         borderTopColor: t.navLine,
         paddingTop: 6,
@@ -61,32 +61,37 @@ export function TabBar({ state, navigateToTab, insets }: BottomTabBarProps) {
         paddingHorizontal: 8,
       }}
     >
+      <View pointerEvents="none" style={{ position: 'absolute', inset: 0, backgroundColor: t.bg, opacity: 0.94 }} />
       {left.map(renderTab)}
       <View style={{ flex: 1, alignItems: 'center' }}>
-        <Pressable
+        <PressableScale
           accessibilityRole="button"
           accessibilityLabel={dropPending ? "Open today's Drop, not finished yet" : "Open today's Drop"}
           onPress={() => router.push('/drop')}
-          style={({ pressed }) => ({
-            width: 60,
-            height: 60,
+          style={{
+            width: 58,
+            height: 58,
             marginTop: -26,
-            borderRadius: 30,
-            backgroundColor: t.accent,
+            borderRadius: 29,
+            backgroundColor: t.scheme === 'light' ? t.forest : t.primary.bg,
             borderWidth: 4,
             borderColor: t.bg,
             alignItems: 'center',
             justifyContent: 'center',
-            transform: [{ scale: pressed ? 0.95 : 1 }],
-          })}
+            shadowColor: t.forest,
+            shadowOffset: { width: 0, height: 6 },
+            shadowOpacity: 0.24,
+            shadowRadius: 10,
+            elevation: 7,
+          }}
         >
-          <Ionicons name="flame" size={26} color={t.onAccent} />
+          <Ionicons name="flame" size={26} color={t.lime} />
           {dropPending ? (
             <View
-              style={{ position: 'absolute', top: 2, right: 2, width: 12, height: 12, borderRadius: 6, backgroundColor: t.text, borderWidth: 2, borderColor: t.accent }}
+              style={{ position: 'absolute', top: 1, right: 1, width: 13, height: 13, borderRadius: 7, backgroundColor: t.lime, borderWidth: 2, borderColor: t.forest }}
             />
           ) : null}
-        </Pressable>
+        </PressableScale>
         <Text style={{ fontFamily: fonts.bodySemi, fontSize: 11, color: t.faint, marginTop: 2 }}>Drop</Text>
       </View>
       {right.map(renderTab)}

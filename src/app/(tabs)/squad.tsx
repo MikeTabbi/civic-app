@@ -2,11 +2,14 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Share, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, Share, View } from 'react-native';
 
+import { AccentHeading } from '@/components/AccentHeading';
+import { PressableScale } from '@/components/PressableScale';
+import { Skeleton } from '@/components/Skeleton';
 import { ManageSquad } from '@/components/squad/ManageSquad';
 import { CreateSquadCard, JoinSquadCard } from '@/components/squad/SquadForms';
-import { Avatar, Button, Card, Notice, ProgressBar, Row, Screen, Segmented, T, TextLink } from '@/components/ui';
+import { Avatar, Button, Card, Notice, Row, Screen, Segmented, T, TextLink } from '@/components/ui';
 import { accountsEnabled } from '@/lib/auth';
 import { APP_NAME } from '@/lib/brand';
 import { confirm } from '@/lib/confirm';
@@ -27,6 +30,8 @@ function SignedInSquad() {
   const { t } = useTheme();
   const { loaded, squads, active, setActive, refresh, error, pendingCode, setPendingCode } = useSquads();
   const [adding, setAdding] = useState(false);
+  const [entry, setEntry] = useState<'create' | 'join' | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -36,34 +41,66 @@ function SignedInSquad() {
 
   const count = squads.length;
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refresh();
+    setRefreshing(false);
+  }, [refresh]);
+
   if (!loaded) {
     return (
-      <Screen>
-        <ActivityIndicator color={t.accent} style={{ marginTop: 40 }} />
+      <Screen style={{ gap: 18 }}>
+        <Skeleton width="34%" height={12} />
+        <Skeleton width="72%" height={38} radius={12} />
+        <Skeleton height={190} radius={24} />
+        <Skeleton height={110} radius={20} />
+      </Screen>
+    );
+  }
+
+  if (!active && !entry && !pendingCode) {
+    return (
+      <Screen style={{ justifyContent: 'center', gap: 18 }}>
+        <AccentHeading accent="together">Vote together</AccentHeading>
+        <SquadIllustration />
+        <View style={{ alignItems: 'center', gap: 8 }}>
+          <T variant="heading">No squad yet</T>
+          <T tone="muted" style={{ textAlign: 'center' }}>
+            Set a goal together and see how many of you have a voting plan. Squads only see a yes or no, and only from people who choose to share.
+          </T>
+        </View>
+        {error ? <Notice tone="warn"><T variant="caption">{error}</T></Notice> : null}
+        <Button label="Start a squad" icon="people" onPress={() => setEntry('create')} />
+        <View style={{ alignItems: 'center' }}>
+          <TextLink label="I have an invite code" onPress={() => setEntry('join')} />
+        </View>
       </Screen>
     );
   }
 
   // An invite link opened earlier shows up here as a filled-in join form.
-  if (!active || adding || pendingCode) {
-    const done = () => setAdding(false);
+  if (!active || adding || pendingCode || entry) {
+    const done = () => {
+      setAdding(false);
+      setEntry(null);
+    };
     return (
       <Screen>
         <T variant="eyebrow" tone="accent">Squad</T>
-        <T variant="title">{active ? 'Add a squad' : 'Get your friends to the polls'}</T>
+        <AccentHeading accent={active ? 'squad' : 'friends'}>{active ? 'Add a squad' : 'Get your friends to the polls'}</AccentHeading>
         <T tone="muted">
           Set a goal together and see how many of you have a voting plan. Squads only see a yes or no, and only from people who choose to share.
         </T>
         {error ? <Notice tone="warn"><T variant="caption">{error}</T></Notice> : null}
         {count < MAX_SQUADS ? (
           <>
-            <JoinSquadCard key={pendingCode ?? 'join'} onDone={done} />
-            <CreateSquadCard onDone={done} />
+            {pendingCode || entry === 'join' || (active && adding && !entry) ? <JoinSquadCard key={pendingCode ?? 'join'} onDone={done} /> : null}
+            {entry === 'create' || (active && adding && !entry) ? <CreateSquadCard onDone={done} /> : null}
           </>
         ) : (
           <Notice><T variant="caption">You're in {MAX_SQUADS} squads, the most allowed. Leave one to add another.</T></Notice>
         )}
-        {active ? (
+        {active || entry ? (
           <Button
             label="Cancel"
             kind="quiet"
@@ -78,7 +115,7 @@ function SignedInSquad() {
   }
 
   return (
-    <Screen>
+    <Screen refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.accent} colors={[t.accent]} />}>
       {count > 1 ? (
         <Segmented<string>
           value={active.id}
@@ -89,6 +126,18 @@ function SignedInSquad() {
       <SquadDetail key={active.id} squad={active} />
       {count < MAX_SQUADS ? <TextLink label="Create or join another squad" onPress={() => setAdding(true)} /> : null}
     </Screen>
+  );
+}
+
+function SquadIllustration() {
+  const { t } = useTheme();
+  return (
+    <View accessible accessibilityLabel="Three connected civic circles" style={{ height: 116, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ width: 82, height: 82, borderRadius: 41, backgroundColor: t.level.federal.tint, position: 'absolute', left: '22%' }} />
+      <View style={{ width: 82, height: 82, borderRadius: 41, backgroundColor: t.level.state.tint, position: 'absolute' }} />
+      <View style={{ width: 82, height: 82, borderRadius: 41, backgroundColor: t.level.local.tint, position: 'absolute', right: '22%' }} />
+      <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: t.forest, borderWidth: 4, borderColor: t.lime }} />
+    </View>
   );
 }
 
@@ -145,7 +194,7 @@ function SquadDetail({ squad }: { squad: SquadT }) {
   return (
     <>
       <T variant="eyebrow" tone="accent">Your squad</T>
-      <T variant="title">{squad.name}</T>
+      <AccentHeading accent={squad.name.trim().split(/\s+/).at(-1) ?? squad.name}>{squad.name}</AccentHeading>
       <Row gap={0}>
         {roster.slice(0, 6).map((m, i) => (
           <View key={m.userId} style={{ marginLeft: i ? -10 : 0 }}>
@@ -157,33 +206,38 @@ function SquadDetail({ squad }: { squad: SquadT }) {
         </T>
       </Row>
 
-      <Card tone="tint">
-        <T variant="eyebrow" tone="accent">Squad goal{squad.goalEnds ? ` · ends ${formatDay(squad.goalEnds)}` : ''}</T>
-        <T variant="heading">{squad.goal ?? 'Everyone has a voting plan'}</T>
+      <View style={{ gap: 12, padding: 20, borderRadius: radius.xl, backgroundColor: t.forest }}>
+        <T variant="eyebrow" style={{ color: t.lime }}>Squad goal{squad.goalEnds ? ` · ends ${formatDay(squad.goalEnds)}` : ''}</T>
+        <T variant="heading" style={{ color: t.lime }}>{squad.goal ?? 'Everyone has a voting plan'}</T>
         <Row style={{ alignItems: 'baseline' }} gap={2}>
-          <T variant="display">{squad.withPlan}</T>
-          <T variant="heading" tone="faint">/{squad.members}</T>
+          <T variant="display" style={{ color: t.lime }}>{squad.withPlan}</T>
+          <T variant="heading" style={{ color: t.lime }}> of {squad.members}</T>
         </Row>
-        <ProgressBar value={pct} />
-        <T variant="caption" tone="muted">
+        <View style={{ height: 8, borderRadius: 4, overflow: 'hidden', backgroundColor: t.drop.track }}>
+          <View style={{ height: 8, width: `${Math.max(0, Math.min(1, pct)) * 100}%`, borderRadius: 4, backgroundColor: t.lime }} />
+        </View>
+        <T variant="caption" style={{ color: t.lime }}>
           {squad.withPlan} of {squad.members} {squad.members === 1 ? 'has' : 'have'} a plan
         </T>
-        <Button
-          label={squad.nudgedToday ? 'Nudged today' : 'Nudge the others'}
-          kind="dark"
-          icon="notifications-outline"
+        <PressableScale
+          accessibilityRole="button"
+          accessibilityLabel={squad.nudgedToday ? 'Nudged today' : 'Nudge the others'}
+          accessibilityState={{ disabled: squad.nudgedToday || squad.members < 2, busy: nudging }}
           onPress={nudge}
-          loading={nudging}
           disabled={squad.nudgedToday || squad.members < 2}
-        />
+          style={{ minHeight: 44, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: radius.pill, paddingHorizontal: 16, backgroundColor: t.lime, opacity: squad.nudgedToday || squad.members < 2 ? 0.55 : 1 }}
+        >
+          {nudging ? <ActivityIndicator color={t.forest} /> : <Ionicons name="notifications-outline" size={17} color={t.forest} />}
+          <T variant="label" style={{ color: t.forest }}>{squad.nudgedToday ? 'Nudged today' : 'Nudge the others'}</T>
+        </PressableScale>
         {notice ? <Notice tone={notice.tone}><T variant="caption">{notice.text}</T></Notice> : null}
         <Row gap={6}>
-          <Ionicons name="lock-closed" size={12} color={t.faint} />
-          <T variant="caption" tone="faint" style={{ flex: 1 }}>
+          <Ionicons name="lock-closed" size={12} color={t.lime} />
+          <T variant="caption" style={{ flex: 1, color: t.lime }}>
             Counts only members who chose to share. Squads see a yes or no, never how, where or when anyone votes.
           </T>
         </Row>
-      </Card>
+      </View>
 
       <Row style={{ justifyContent: 'space-between' }}>
         <T variant="heading">Leaderboards</T>
@@ -230,7 +284,7 @@ function SignInCard() {
   return (
     <Screen>
       <T variant="eyebrow" tone="accent">Squad</T>
-      <T variant="title">Get your friends to the polls</T>
+      <AccentHeading accent="friends">Get your friends to the polls</AccentHeading>
       <Card tone="tint">
         <T variant="heading">Sign in to join a squad</T>
         <T tone="muted">

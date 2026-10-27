@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
 
+import { AccentHeading } from '@/components/AccentHeading';
 import { SchoolPicker } from '@/components/SchoolPicker';
 import { Button, Card, IconButton, Notice, Row, Screen, T, TextField, ToggleRow } from '@/components/ui';
 import { useAuth } from '@/state/AuthProvider';
@@ -56,7 +57,7 @@ export default function EditProfile() {
       <Row style={{ minHeight: 44 }}>
         <IconButton icon="close" label="Close" onPress={close} />
       </Row>
-      <T variant="title">Edit profile</T>
+      <AccentHeading accent="profile">Edit profile</AccentHeading>
       <T tone="muted">Your name, handle and school are your public profile. Your email, address and voting plan are never part of it.</T>
 
       <TextField label="First name" value={name} onChangeText={setName} placeholder="Jordan" autoComplete="given-name" error={showErrors ? errors.name : null} />

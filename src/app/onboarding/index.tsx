@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { View } from 'react-native';
 
+import { AccentHeading } from '@/components/AccentHeading';
 import { Button, Screen, T } from '@/components/ui';
 import { APP_NAME } from '@/lib/brand';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -21,9 +22,7 @@ export default function Welcome() {
     <Screen scroll={false} style={{ gap: 20 }}>
       <T variant="heading">{APP_NAME}</T>
       <View style={{ marginTop: 32, gap: 12 }}>
-        <T variant="display" style={{ fontSize: 44, lineHeight: 46 }}>
-          Politics, <T variant="display" tone="accent" style={{ fontSize: 44, lineHeight: 46 }}>where you live.</T>
-        </T>
+        <AccentHeading accent="live" style={{ fontSize: 44, lineHeight: 46 }}>Politics, where you live.</AccentHeading>
         <T tone="muted" style={{ fontSize: 16, lineHeight: 23 }}>
           Nonpartisan. Every fact has a source. Your address and voting plans stay private.
         </T>

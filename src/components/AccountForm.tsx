@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 
+import { AccentHeading } from '@/components/AccentHeading';
 import { SchoolPicker } from '@/components/SchoolPicker';
 import { SocialSignIn } from '@/components/SocialSignIn';
 import { Button, IconButton, Notice, Row, Screen, StepHeader, T, TextField, TextLink } from '@/components/ui';
@@ -118,7 +119,7 @@ export function AccountForm({ mode = 'onboarding', onDone }: { mode?: 'onboardin
             <IconButton icon="chevron-back" label="Back" onPress={() => setStage('form')} />
           </Row>
         )}
-        <T variant="title" style={{ marginTop: 12 }}>Check your email</T>
+        <AccentHeading accent="email" style={{ marginTop: 12, fontSize: 28, lineHeight: 32 }}>Check your email</AccentHeading>
         {devSendError ? (
           <Notice tone="warn">
             <T variant="caption">Dev build: the email didn't send ({devSendError}).</T>
@@ -148,7 +149,9 @@ export function AccountForm({ mode = 'onboarding', onDone }: { mode?: 'onboardin
   return (
     <Screen style={{ gap: 16 }}>
       {header}
-      <T variant="title" style={{ marginTop: 8 }}>{mode === 'onboarding' ? 'Make your profile' : 'Sign in for squads'}</T>
+      <AccentHeading accent={mode === 'onboarding' ? 'profile' : 'squads'} style={{ marginTop: 8, fontSize: 28, lineHeight: 32 }}>
+        {mode === 'onboarding' ? 'Make your profile' : 'Sign in for squads'}
+      </AccentHeading>
       <T tone="muted">
         {mode === 'onboarding'
           ? 'Your name and handle are public. Your email stays private.'

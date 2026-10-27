@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Linking, Pressable, View } from 'react-native';
 
+import { AccentHeading } from '@/components/AccentHeading';
 import { Button, Card, IconButton, Notice, Row, Screen, T, TextLink } from '@/components/ui';
 import { IVOTE_URL, REGISTRATION_FAQ_URL, VOTE_GOV_URL } from '@/data/delaware';
 import { useProfile, type VotingLocation } from '@/state/ProfileProvider';
@@ -74,7 +75,7 @@ export default function Quiz() {
       {!done ? (
         <>
           <T variant="caption" tone="faint">Question {step + 1} of {QUESTIONS.length}</T>
-          <T variant="title">{QUESTIONS[step].q}</T>
+          <AccentHeading accent={QUESTIONS[step].q.trim().split(/\s+/).at(-1)?.replace(/\W/g, '') ?? QUESTIONS[step].q} style={{ fontSize: 28, lineHeight: 32 }}>{QUESTIONS[step].q}</AccentHeading>
           <View style={{ gap: 10 }}>
             {QUESTIONS[step].options.map((o) => (
               <Pressable
@@ -100,7 +101,7 @@ export default function Quiz() {
       ) : result ? (
         <>
           <T variant="eyebrow" tone="accent">Our suggestion</T>
-          <T variant="display">{result.pick === 'campus' ? 'Vote on campus' : 'Vote back home'}</T>
+          <AccentHeading accent={result.pick === 'campus' ? 'campus' : 'home'}>{result.pick === 'campus' ? 'Vote on campus' : 'Vote back home'}</AccentHeading>
           <Card>
             <T tone="muted">{result.why}</T>
           </Card>

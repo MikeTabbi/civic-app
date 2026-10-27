@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Linking, Pressable, View } from 'react-native';
 
+import { AccentHeading } from '@/components/AccentHeading';
 import { Card, IconButton, Row, Screen, T } from '@/components/ui';
 import { WHYY_GUIDE_URL } from '@/data/ballot2026';
 import { OFFICIAL_SITE } from '@/data/delaware';
@@ -11,7 +12,7 @@ const close = () => (router.canGoBack() ? router.back() : router.replace('/me'))
 
 const PRINCIPLES = [
   'Nonpartisan. We never tell you who to vote for.',
-  'No party colors. Orange is our only accent and never stands for a party.',
+  'No party colors. Our civic palette never stands for a party.',
   'Candidates and officials are listed by office and last name, never by party.',
   'Every civic fact shows its source.',
   'Your address, voting plan and reminders stay private to you.',
@@ -33,7 +34,7 @@ export default function About() {
       <Row style={{ minHeight: 44 }}>
         <IconButton icon="chevron-back" label="Back" onPress={close} />
       </Row>
-      <T variant="title">About and sources</T>
+      <AccentHeading accent="sources">About and sources</AccentHeading>
 
       <Card>
         <T variant="heading">Our principles</T>

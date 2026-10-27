@@ -1,9 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
-import { KeyboardAvoidingView, Linking, Modal, Platform, Pressable, ScrollView, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { KeyboardAvoidingView, Linking, PanResponder, Platform, Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AccentHeading } from '@/components/AccentHeading';
+import { PressableScale } from '@/components/PressableScale';
+import { Sheet } from '@/components/Sheet';
 import { Button, Notice, SourceTag, T, TextField } from '@/components/ui';
 import {
   dropDateLabel,
@@ -18,6 +21,7 @@ import {
   type WhoDecides,
 } from '@/data/drops';
 import type { Milestone } from '@/lib/streak';
+import { light } from '@/lib/haptics';
 import { useNow } from '@/lib/useNow';
 import { useDrops } from '@/state/DropProvider';
 import { useProfile } from '@/state/ProfileProvider';
@@ -26,10 +30,12 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { fonts, radius } from '@/theme/tokens';
 
 const close = () => (router.canGoBack() ? router.back() : router.replace('/'));
+let swipeHintSeen = false;
+const lastWord = (value: string) => value.trim().split(/\s+/).at(-1)?.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '') || value;
 
 /**
  * Daily Drop: a 60-second local explainer as tap-through story cards, then a quick check.
- * Light mode uses the full orange background from v8; dark mode uses charcoal.
+ * Full-screen story with a short quick check at the end.
  */
 export default function Drop() {
   const now = useNow();
@@ -49,13 +55,14 @@ function nextDropLine(now: Date) {
 function NoDropYet({ now }: { now: Date }) {
   const { t } = useTheme();
   const c = t.drop;
+  const title = nextDropLine(now);
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: c.bg }}>
       <View style={{ flex: 1, padding: 20, gap: 14 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
           <CloseButton onPress={close} />
         </View>
-        <T variant="display" style={{ color: c.text }}>{nextDropLine(now)}</T>
+        <AccentHeading accent={lastWord(title)} color={c.text}>{title}</AccentHeading>
         <T style={{ color: c.text, fontSize: 16, lineHeight: 23 }}>
           A new 60-second Drop lands every day from {dropDateLabel(drops[0].date)} to {dropDateLabel(drops[drops.length - 1].date)}.
         </T>
@@ -67,7 +74,7 @@ function NoDropYet({ now }: { now: Date }) {
 function CloseButton({ onPress }: { onPress: () => void }) {
   const { t } = useTheme();
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       accessibilityLabel="Close"
       onPress={onPress}
@@ -75,7 +82,7 @@ function CloseButton({ onPress }: { onPress: () => void }) {
       style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: t.drop.track, alignItems: 'center', justifyContent: 'center' }}
     >
       <Ionicons name="close" size={22} color={t.drop.text} />
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -89,6 +96,7 @@ function DropView({ drop, now }: { drop: DropData; now: Date }) {
   const [unlocked, setUnlocked] = useState<Milestone | null>(null);
   const [asking, setAsking] = useState(false);
   const [openError, setOpenError] = useState<string | null>(null);
+  const [showSwipeHint, setShowSwipeHint] = useState(!swipeHintSeen);
 
   const total = drop.cards.length + 1;
   const onQuiz = index === drop.cards.length;
@@ -100,10 +108,27 @@ function DropView({ drop, now }: { drop: DropData; now: Date }) {
 
   const go = (step: number) => setIndex((i) => Math.max(0, Math.min(total - 1, i + step)));
 
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 14 && Math.abs(gesture.dx) > Math.abs(gesture.dy),
+        onPanResponderRelease: (_, gesture) => {
+          if (Math.abs(gesture.dx) < 48) return;
+          go(gesture.dx < 0 ? 1 : -1);
+          swipeHintSeen = true;
+          setShowSwipeHint(false);
+        },
+      }),
+    // The responder only needs the bounded `go` action for this mounted Drop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [total],
+  );
+
   const pick = (choice: number) => {
     if (drop.id in saved.answers) return;
     saved.answer(drop.id, choice);
     const badge = streak.completeDrop(drop.id, now);
+    void light();
     if (badge) setUnlocked(badge);
   };
 
@@ -123,14 +148,14 @@ function DropView({ drop, now }: { drop: DropData; now: Date }) {
       <View style={{ paddingHorizontal: 20, paddingTop: 8, gap: 14 }}>
         <View style={{ flexDirection: 'row', gap: 4 }} accessibilityLabel={`Part ${index + 1} of ${total}`}>
           {Array.from({ length: total }).map((_, i) => (
-            <View key={i} style={{ flex: 1, height: 4, borderRadius: 2, backgroundColor: i <= index ? c.text : c.track }} />
+            <View key={i} style={{ flex: 1, height: 4, borderRadius: 2, backgroundColor: i <= index ? t.lime : c.track }} />
           ))}
         </View>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <View style={{ flex: 1 }}>
-            <T variant="heading" style={{ color: c.text }}>{isToday ? "Today's Drop" : 'Latest Drop'}</T>
+            <AccentHeading accent="Drop" color={c.text} style={{ fontSize: 28, lineHeight: 31 }}>{isToday ? "Today's Drop" : 'Latest Drop'}</AccentHeading>
             <T variant="caption" style={{ color: c.text }}>
-              {dropDateLabel(drop.date)} · {stats.current ? `Day ${stats.current} streak` : 'Finish it to start a streak'}
+              {dropDateLabel(drop.date)} · 1 min{stats.current ? ` · Day ${stats.current} streak` : ''}
             </T>
             {isToday ? null : <T variant="caption" style={{ color: c.text }}>No new Drop today. {nextDropLine(now)}.</T>}
           </View>
@@ -142,16 +167,18 @@ function DropView({ drop, now }: { drop: DropData; now: Date }) {
         <View style={{ alignSelf: 'flex-start', backgroundColor: c.card, borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 6 }}>
           <T variant="eyebrow" style={{ color: c.cardAccent }}>{drop.tag}</T>
         </View>
-        <T variant="display" style={{ color: c.text, fontSize: 30, lineHeight: 33 }}>{drop.title}</T>
+        <AccentHeading accent={lastWord(drop.title)} color={c.text} style={{ fontSize: 30, lineHeight: 33 }}>{drop.title}</AccentHeading>
         <T style={{ color: c.text, fontSize: 16, lineHeight: 23 }}>{drop.summary}</T>
 
-        <View style={{ minHeight: 300, borderRadius: radius.xl, backgroundColor: c.card, padding: 20, gap: 10 }}>
-          {onQuiz || !card ? (
-            <QuickCheckCard drop={drop} picked={saved.answers[drop.id]} onPick={pick} onBack={() => go(-1)} streakDays={stats.current} finished={finished} />
-          ) : (
-            <>
-              <T variant="eyebrow" style={{ color: c.cardAccent }}>{index + 1} of {drop.cards.length}</T>
-              <T variant="title" style={{ color: c.cardText, fontSize: 24, lineHeight: 28 }}>{card.title}</T>
+        <View style={{ position: 'relative', marginBottom: 4 }} {...panResponder.panHandlers}>
+          <View pointerEvents="none" style={{ position: 'absolute', inset: 8, top: 12, borderRadius: radius.xxl, backgroundColor: t.scheme === 'light' ? t.accent : t.sub, transform: [{ rotate: '3deg' }] }} />
+          <View style={{ minHeight: 310, borderRadius: radius.xxl, backgroundColor: c.card, padding: 20, gap: 10 }}>
+            {onQuiz || !card ? (
+              <QuickCheckCard drop={drop} picked={saved.answers[drop.id]} onPick={pick} onBack={() => go(-1)} streakDays={stats.current} finished={finished} />
+            ) : (
+              <>
+                <T variant="eyebrow" style={{ color: c.cardAccent }}>{index + 1} of {drop.cards.length}</T>
+                <AccentHeading accent={lastWord(card.title)} color={c.cardText} style={{ fontSize: 27, lineHeight: 30 }}>{card.title}</AccentHeading>
               <T style={{ color: c.cardText, fontSize: 17, lineHeight: 25 }}>{card.body}</T>
               {card.link ? (
                 <Pressable
@@ -196,9 +223,17 @@ function DropView({ drop, now }: { drop: DropData; now: Date }) {
                 onPress={() => go(1)}
                 style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '60%' }}
               />
-            </>
-          )}
+              </>
+            )}
+          </View>
         </View>
+
+        {showSwipeHint ? (
+          <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 7, minHeight: 32 }}>
+            <Ionicons name="hand-left-outline" size={17} color={c.text} />
+            <T variant="caption" style={{ color: c.text }}>Swipe for the next card</T>
+          </View>
+        ) : null}
 
         <T variant="eyebrow" style={{ color: c.text, marginTop: 4 }}>Who decides</T>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
@@ -208,24 +243,23 @@ function DropView({ drop, now }: { drop: DropData; now: Date }) {
         </View>
 
         <View style={{ flexDirection: 'row', gap: 10, marginTop: 4 }}>
-          <Pressable
+          <PressableScale
             accessibilityRole="button"
             onPress={() => setAsking(true)}
-            style={({ pressed }) => ({
+            style={{
               flex: 1,
               minHeight: 52,
-              borderRadius: radius.md,
+              borderRadius: radius.pill,
               backgroundColor: c.btnBg,
               flexDirection: 'row',
               gap: 8,
               alignItems: 'center',
               justifyContent: 'center',
-              opacity: pressed ? 0.85 : 1,
-            })}
+            }}
           >
             <Ionicons name="help-circle-outline" size={20} color={c.btnFg} />
             <T style={{ color: c.btnFg, fontFamily: fonts.bodyHeavy }}>Ask a question</T>
-          </Pressable>
+          </PressableScale>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={bookmarked ? 'Saved. Tap to remove' : 'Save this Drop'}
@@ -402,7 +436,6 @@ function WhoChip({ who }: { who: WhoDecides }) {
 
 /** Short question box. Saved on the device until there's a backend inbox. */
 function AskSheet({ visible, onClose, onSend }: { visible: boolean; onClose: () => void; onSend: (text: string) => void }) {
-  const { t } = useTheme();
   const [text, setText] = useState('');
   const [sent, setSent] = useState(false);
 
@@ -413,45 +446,42 @@ function AskSheet({ visible, onClose, onSend }: { visible: boolean; onClose: () 
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={dismiss}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end' }}>
-        <Pressable accessibilityLabel="Close" onPress={dismiss} style={{ flex: 1 }} />
-        <SafeAreaView edges={['bottom']} style={{ backgroundColor: t.bg, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, borderTopWidth: 1, borderColor: t.line }}>
-          <View style={{ padding: 20, gap: 14 }}>
-            <T variant="heading">Ask a question</T>
-            {sent ? (
-              <>
-                <Notice tone="good">
-                  <T variant="label">Got it. We'll answer top questions in a future Drop.</T>
-                </Notice>
-                <Button label="Done" onPress={dismiss} />
-              </>
-            ) : (
-              <>
-                <TextField
-                  label="Your question about this Drop"
-                  value={text}
-                  onChangeText={setText}
-                  placeholder="What do you want to know?"
-                  maxLength={280}
-                  multiline
-                  autoFocus
-                  hint={`${text.length}/280. Saved on this device for now.`}
-                />
-                <Button
-                  label="Send"
-                  disabled={!text.trim()}
-                  onPress={() => {
-                    onSend(text.trim());
-                    setSent(true);
-                  }}
-                />
-                <Button label="Cancel" kind="quiet" onPress={dismiss} />
-              </>
-            )}
-          </View>
-        </SafeAreaView>
+    <Sheet visible={visible} onClose={dismiss} accessibilityLabel="Ask a question">
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <View style={{ paddingBottom: 8, gap: 14 }}>
+          <T variant="heading">Ask a question</T>
+          {sent ? (
+            <>
+              <Notice tone="good">
+                <T variant="label">Got it. We'll answer top questions in a future Drop.</T>
+              </Notice>
+              <Button label="Done" onPress={dismiss} />
+            </>
+          ) : (
+            <>
+              <TextField
+                label="Your question about this Drop"
+                value={text}
+                onChangeText={setText}
+                placeholder="What do you want to know?"
+                maxLength={280}
+                multiline
+                autoFocus
+                hint={`${text.length}/280. Saved on this device for now.`}
+              />
+              <Button
+                label="Send"
+                disabled={!text.trim()}
+                onPress={() => {
+                  onSend(text.trim());
+                  setSent(true);
+                }}
+              />
+              <Button label="Cancel" kind="quiet" onPress={dismiss} />
+            </>
+          )}
+        </View>
       </KeyboardAvoidingView>
-    </Modal>
+    </Sheet>
   );
 }

@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Platform, Pressable, Share, View } from 'react-native';
 
+import { PressableScale } from '@/components/PressableScale';
 import { Avatar, Button, Card, Chip, initialsOf, Notice, Row, Screen, Segmented, T, ToggleRow, type IconName } from '@/components/ui';
 import { racesForDistricts } from '@/data/ballot2026';
 import { getDrop, localDateKey } from '@/data/drops';
@@ -110,10 +111,10 @@ export default function Me() {
   };
 
   return (
-    <Screen>
+    <Screen style={{ gap: 18 }}>
       {/* ---------- Public profile ---------- */}
       <Row gap={16}>
-        <Avatar size={76} ring={t.accent} label="Your initials" initials={initialsOf(profile.name) || profile.handle.slice(0, 1).toUpperCase()} />
+        <Avatar size={72} ring={t.lime} label="Your initials" initials={initialsOf(profile.name) || profile.handle.slice(0, 1).toUpperCase()} />
         <View style={{ flex: 1, gap: 2 }}>
           <T variant="heading">{profile.name || 'Your profile'}</T>
           {handle ? <T variant="label" tone="muted">{handle}</T> : null}
@@ -121,13 +122,13 @@ export default function Me() {
         </View>
       </Row>
       <Chip label={profile.isPublic ? 'Public profile' : 'Private profile: handle only'} />
-      <Row>
-        <Button label="Edit profile" kind="quiet" style={{ flex: 1, minHeight: 44 }} onPress={() => router.push('/profile/edit')} />
-        <Button label="Share profile" kind="quiet" style={{ flex: 1, minHeight: 44 }} onPress={share} disabled={!handle} />
+      <Row gap={10}>
+        <ProfileAction label="Edit profile" onPress={() => router.push('/profile/edit')} />
+        <ProfileAction label="Share" onPress={share} disabled={!handle} />
       </Row>
 
       {/* ---------- Stats and badges (shown only to you) ---------- */}
-      <Row gap={8} style={{ justifyContent: 'space-around', marginTop: 4 }}>
+      <Row gap={8} style={{ justifyContent: 'space-around', padding: 16, borderRadius: radius.lg, backgroundColor: t.surface, borderWidth: 1, borderColor: t.line }}>
         {stats.map((s) => (
           <View key={s.label} style={{ flex: 1, alignItems: 'center' }}>
             <T variant="heading">{s.n}</T>
@@ -159,12 +160,11 @@ export default function Me() {
       <T variant="caption" tone="faint">Your stats and badges are only shown to you. Your streak appears on leaderboards only if you turn that on.</T>
 
       {/* ---------- Private ---------- */}
-      <Card tone="sub" style={{ marginTop: 4 }}>
+      <View style={{ gap: 8, padding: 16, borderRadius: radius.lg, backgroundColor: t.level.local.tint, marginTop: 4 }}>
         <Row gap={6}>
-          <Ionicons name="lock-closed" size={14} color={t.text} />
-          <T variant="label">Private to you</T>
+          <Ionicons name="lock-closed" size={14} color={t.level.local.ink} />
+          <T variant="eyebrow" style={{ color: t.level.local.ink }}>Only you can see this</T>
         </Row>
-        <T variant="caption" tone="faint">Only you can see this.</T>
         <PrivateRow
           icon="location"
           title="Address and districts"
@@ -191,7 +191,7 @@ export default function Me() {
           value={streak.onLeaderboard}
           onValueChange={streak.setOnLeaderboard}
         />
-      </Card>
+      </View>
 
       {/* ---------- Saved and Following ---------- */}
       <Segmented<'saved' | 'following'>
@@ -266,14 +266,30 @@ export default function Me() {
   );
 }
 
+function ProfileAction({ label, onPress, disabled = false }: { label: string; onPress: () => void; disabled?: boolean }) {
+  const { t } = useTheme();
+  return (
+    <PressableScale
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
+      onPress={onPress}
+      style={{ flex: 1, minHeight: 44, alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill, borderWidth: 1, borderColor: t.line, opacity: disabled ? 0.45 : 1 }}
+    >
+      <T variant="label">{label}</T>
+    </PressableScale>
+  );
+}
+
 function PrivateRow({ icon, title, value, sub, action, onPress }: { icon: IconName; title: string; value: string; sub?: string; action?: string; onPress: () => void }) {
   const { t } = useTheme();
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       accessibilityLabel={`${title}: ${value}${sub ? `. ${sub}` : ''}. ${action ?? 'Open'}`}
       onPress={onPress}
-      style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, opacity: pressed ? 0.7 : 1 })}
+      style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10 }}
     >
       <Ionicons name={icon} size={18} color={t.muted} />
       <View style={{ flex: 1 }}>
@@ -282,18 +298,18 @@ function PrivateRow({ icon, title, value, sub, action, onPress }: { icon: IconNa
         {sub ? <T variant="caption" tone="faint">{sub}</T> : null}
       </View>
       {action ? <T variant="label" tone="accent">{action}</T> : <Ionicons name="chevron-forward" size={18} color={t.faint} />}
-    </Pressable>
+    </PressableScale>
   );
 }
 
 function ListRow({ eyebrow, title, sub, onPress }: { eyebrow: string; title: string; sub?: string; onPress?: () => void }) {
   const { t } = useTheme();
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole={onPress ? 'button' : undefined}
       disabled={!onPress}
       onPress={onPress}
-      style={({ pressed }) => ({
+      style={{
         flexDirection: 'row',
         alignItems: 'center',
         gap: 12,
@@ -302,8 +318,7 @@ function ListRow({ eyebrow, title, sub, onPress }: { eyebrow: string; title: str
         backgroundColor: t.surface,
         borderWidth: 1,
         borderColor: t.line,
-        opacity: pressed ? 0.85 : 1,
-      })}
+      }}
     >
       <View style={{ flex: 1, gap: 2 }}>
         <T variant="eyebrow" tone="faint">{eyebrow}</T>
@@ -311,7 +326,7 @@ function ListRow({ eyebrow, title, sub, onPress }: { eyebrow: string; title: str
         {sub ? <T variant="caption" tone="faint">{sub}</T> : null}
       </View>
       {onPress ? <Ionicons name="chevron-forward" size={18} color={t.faint} /> : null}
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -319,7 +334,7 @@ function OfficialRow({ official: o, onUnfollow }: { official: Official; onUnfoll
   const { t } = useTheme();
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: radius.md, backgroundColor: t.surface, borderWidth: 1, borderColor: t.line }}>
-      <Pressable
+      <PressableScale
         accessibilityRole="button"
         accessibilityLabel={`${o.name}, ${o.office}`}
         onPress={() => router.push({ pathname: '/official/[id]', params: { id: o.id } })}
@@ -330,7 +345,7 @@ function OfficialRow({ official: o, onUnfollow }: { official: Official; onUnfoll
           <T variant="label">{o.name}</T>
           <T variant="caption" tone="faint">{o.office}</T>
         </View>
-      </Pressable>
+      </PressableScale>
       <Button label="Unfollow" kind="quiet" accessibilityLabel={`Unfollow ${o.name}`} onPress={onUnfollow} style={{ minHeight: 40, paddingHorizontal: 12 }} />
     </View>
   );

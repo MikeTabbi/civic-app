@@ -2,6 +2,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { AppState, Linking } from 'react-native';
 
+import { AccentHeading } from '@/components/AccentHeading';
 import { Button, Card, IconButton, Notice, Row, Screen, SourceTag, T, TextLink, ToggleRow } from '@/components/ui';
 import { generalElection2026 as E } from '@/data/delaware';
 import {
@@ -75,7 +76,7 @@ export default function RemindersSettings() {
       <Row style={{ minHeight: 44 }}>
         <IconButton icon="chevron-back" label="Back" onPress={close} />
       </Row>
-      <T variant="title">Reminders</T>
+      <AccentHeading accent="Reminders">Reminders</AccentHeading>
       <T tone="muted">Only you can see this. We only send the reminders you pick.</T>
 
       {perm === 'granted' ? (

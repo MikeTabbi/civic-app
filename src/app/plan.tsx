@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import type { ReactNode } from 'react';
 import { Linking, Platform, Pressable, View } from 'react-native';
 
+import { AccentHeading } from '@/components/AccentHeading';
 import { Button, Card, IconButton, Notice, Row, Screen, SourceTag, T, TextField, TextLink, ToggleRow } from '@/components/ui';
 import { generalElection2026 as E, IVOTE_URL, VOTING_LOCATIONS_URL, parseLocalDate } from '@/data/delaware';
 import { syncReminders } from '@/lib/reminders';
@@ -53,7 +54,7 @@ export default function Plan() {
       <Row style={{ minHeight: 44 }}>
         <IconButton icon="chevron-back" label="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
       </Row>
-      <T variant="title">Your voting plan</T>
+      <AccentHeading accent="plan">Your voting plan</AccentHeading>
       <T tone="muted">Private. Your plan is saved on this phone and never shown on your profile. Squads can only see whether you have a plan, and only if you turn that on.</T>
 
       <Step n={1} title="Are you registered?" done={plan.registered}>
