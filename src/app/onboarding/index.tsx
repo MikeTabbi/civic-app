@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { View } from 'react-native';
 
 import { Button, Screen, T } from '@/components/ui';
+import { APP_NAME } from '@/lib/brand';
 import { useTheme } from '@/theme/ThemeProvider';
 import { radius } from '@/theme/tokens';
 
@@ -18,7 +19,7 @@ export default function Welcome() {
   const { t } = useTheme();
   return (
     <Screen scroll={false} style={{ gap: 20 }}>
-      <T variant="heading">[App name]</T>
+      <T variant="heading">{APP_NAME}</T>
       <View style={{ marginTop: 32, gap: 12 }}>
         <T variant="display" style={{ fontSize: 44, lineHeight: 46 }}>
           Politics, <T variant="display" tone="accent" style={{ fontSize: 44, lineHeight: 46 }}>where you live.</T>

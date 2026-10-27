@@ -1,8 +1,8 @@
-# civic-app
+# Delaware Civic
 
 Everything political where you live — your ballot, your reps, election dates and deadlines, and a 60-second Daily Drop — built for young voters (18–29), launching first with students at Delaware State University.
 
-> Working title. The app name is still TBD, so the UI shows `[App name]`.
+> **Delaware Civic** in the app, **DE Civic** under the home screen icon and wherever space is tight. Both names live in `src/lib/brand.ts` (the home screen name is `name` in `app.json`). The Expo slug and repo stay `civic-app`.
 
 ## Principles
 

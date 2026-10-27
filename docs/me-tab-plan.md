@@ -6,7 +6,7 @@ The Me tab stops reading `src/data/mock.ts` and reads only the providers that al
 
 - **Public header.** Shows your initials avatar, name, @handle, and school (when it's a named school). A chip says whether your profile is public. Below that, three real stats: day streak (StreakProvider), races explored X of Y (BallotProvider plus `racesForDistricts`), and officials followed (FollowProvider). Then badges: streak, ballot X/Y, "Plan ready" (only once `hasCompletePlan` is true), and any streak badges you've earned. A caption says these stats are only shown to you.
 - **Edit profile** (`/profile/edit`, a modal). Edits name, handle, school (the same three choices as onboarding) and a Public profile toggle. When you're signed in it saves to Supabase first through `syncProfile` (cloud.ts `upsertProfile`). A taken handle shows the same field error as onboarding, and nothing is saved locally until the server accepts it. When you're signed out it saves on the phone only.
-- **Share profile.** Opens the system share sheet with "Find me on Civic App: @handle". The app name comes from app.json. There's a TODO to add a link once the website can show profiles.
+- **Share profile.** Opens the system share sheet with "Find me on Delaware Civic: @handle". The app name comes from `src/lib/brand.ts`. There's a TODO to add a link once the website can show profiles.
 - **Private card**, labeled "Only you can see this":
   - Address and districts: the district summary, never the address. Edit opens `/address?mode=edit`.
   - Voting plan: a summary (method, day and time, or steps done) plus whether plan status is shared with squads. Edit opens `/plan`.

@@ -20,6 +20,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { APP_SHORT_NAME } from '@/lib/brand';
 import { useTheme } from '@/theme/ThemeProvider';
 import { fonts, radius, space } from '@/theme/tokens';
 
@@ -348,7 +349,7 @@ export function StepHeader({ step, total = 3, onBack }: { step: number; total?: 
   return (
     <View style={{ gap: 12 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44 }}>
-        {onBack ? <IconButton icon="chevron-back" label="Back" onPress={onBack} /> : <T variant="heading">[App name]</T>}
+        {onBack ? <IconButton icon="chevron-back" label="Back" onPress={onBack} /> : <T variant="heading">{APP_SHORT_NAME}</T>}
         <T variant="caption" tone="faint">Step {step} of {total}</T>
       </View>
       <View style={{ flexDirection: 'row', gap: 4 }}>

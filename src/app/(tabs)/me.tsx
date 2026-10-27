@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Platform, Pressable, Share, View } from 'react-native';
@@ -8,6 +7,7 @@ import { Avatar, Button, Card, Chip, initialsOf, Notice, Row, Screen, Segmented,
 import { racesForDistricts } from '@/data/ballot2026';
 import { getDrop, localDateKey } from '@/data/drops';
 import { getOfficial, sortOfficials, type Official } from '@/data/officials';
+import { APP_NAME } from '@/lib/brand';
 import type { Districts } from '@/lib/geocode';
 import { reminderChoices } from '@/lib/reminders';
 import { BADGE_NAMES } from '@/lib/streak';
@@ -22,7 +22,6 @@ import { useDeleteAccount, useSignOut } from '@/state/useSignOut';
 import { useTheme, type AppearancePref } from '@/theme/ThemeProvider';
 import { radius } from '@/theme/tokens';
 
-const APP_NAME = Constants.expoConfig?.name ?? 'Civic App';
 
 /** Short district summary for the private card. Never the address itself. */
 function districtSummary(d: Districts | null) {

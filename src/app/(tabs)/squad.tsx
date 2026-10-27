@@ -8,6 +8,7 @@ import { ManageSquad } from '@/components/squad/ManageSquad';
 import { CreateSquadCard, JoinSquadCard } from '@/components/squad/SquadForms';
 import { Avatar, Button, Card, Notice, ProgressBar, Row, Screen, Segmented, T, TextLink } from '@/components/ui';
 import { accountsEnabled } from '@/lib/auth';
+import { APP_NAME } from '@/lib/brand';
 import { confirm } from '@/lib/confirm';
 import { formatCode, joinLink, MAX_SQUADS, nudgeSquad, removeMember, squadRoster, type Member, type Squad as SquadT } from '@/lib/squads';
 import { formatDay } from '@/lib/votingPlan';
@@ -136,7 +137,7 @@ function SquadDetail({ squad }: { squad: SquadT }) {
     setNotice({ tone: 'good', text: 'Code copied.' });
   };
   const share = () =>
-    Share.share({ message: `Join my squad "${squad.name}" on Civic App and let's all make a voting plan. ${link} (code ${code})` }).catch(() => {});
+    Share.share({ message: `Join my squad "${squad.name}" on ${APP_NAME} and let's all make a voting plan. ${link} (code ${code})` }).catch(() => {});
 
   const pct = squad.members ? squad.withPlan / squad.members : 0;
   const others = roster.filter((m) => !m.isMe).length;
