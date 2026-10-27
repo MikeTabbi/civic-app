@@ -74,6 +74,7 @@ export async function verifyEmailCode(email: string, token: string) {
   return error ? { ok: false as const, message: error.message } : { ok: true as const };
 }
 
-export async function signOut() {
-  if (supabase) await supabase.auth.signOut();
+/** 'local' only clears this device's session, for when the server side is already gone (deleted account). */
+export async function signOut(scope: 'global' | 'local' = 'global') {
+  if (supabase) await supabase.auth.signOut({ scope });
 }

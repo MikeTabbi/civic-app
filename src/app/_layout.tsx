@@ -81,6 +81,9 @@ function RootStack({ fontsLoaded }: { fontsLoaded: boolean }) {
           <Stack.Screen name="plan" />
           <Stack.Screen name="address" options={{ presentation: 'modal' }} />
           <Stack.Screen name="sign-in" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="profile/edit" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="settings/reminders" />
+          <Stack.Screen name="settings/about" />
         </Stack.Protected>
         <Stack.Protected guard={!onboarded}>
           <Stack.Screen name="onboarding" />

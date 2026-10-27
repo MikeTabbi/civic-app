@@ -4,18 +4,8 @@ import { Platform, Pressable, View } from 'react-native';
 
 import { Button, Card, Notice, Screen, SourceTag, StepHeader, T, ToggleRow } from '@/components/ui';
 import { generalElection2026 as E } from '@/data/delaware';
-import { plannedReminders, requestNotificationPermission, syncReminders } from '@/lib/reminders';
+import { formatReminderTime, reminderChoices, requestNotificationPermission, syncReminders } from '@/lib/reminders';
 import { useProfile, type ReminderPrefs } from '@/state/ProfileProvider';
-
-const fmt = (d: Date) =>
-  d.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-
-const OPTIONS: { key: keyof ReminderPrefs; title: string }[] = [
-  { key: 'earlyVoting', title: 'Early voting is open' },
-  { key: 'absenteeDeadline', title: 'Absentee application deadline' },
-  { key: 'dayBefore', title: 'Day before Election Day' },
-  { key: 'electionDay', title: 'Election Day morning' },
-];
 
 /** Step 3 of 3: reminders. Only future reminders are offered. */
 export default function Reminders() {
@@ -24,10 +14,7 @@ export default function Reminders() {
   const [busy, setBusy] = useState(false);
   const [denied, setDenied] = useState(false);
 
-  const everything: ReminderPrefs = { earlyVoting: true, absenteeDeadline: true, dayBefore: true, electionDay: true };
-  const available = plannedReminders(everything);
-  const whenFor = (key: keyof ReminderPrefs) => available.find((r) => r.key === key)?.date;
-  const options = OPTIONS.filter((o) => whenFor(o.key));
+  const options = reminderChoices();
 
   const finish = (allowed: boolean) => {
     update({ reminders: prefs, notificationsAllowed: allowed, onboarded: true });
@@ -58,7 +45,7 @@ export default function Reminders() {
             <ToggleRow
               key={o.key}
               title={o.title}
-              subtitle={fmt(whenFor(o.key)!)}
+              subtitle={formatReminderTime(o.date)}
               value={prefs[o.key]}
               onValueChange={(v) => setPrefs({ ...prefs, [o.key]: v })}
             />

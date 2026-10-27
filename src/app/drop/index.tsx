@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Linking, Modal, Platform, Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,6 +9,7 @@ import {
   dropDateLabel,
   dropForDate,
   drops,
+  getDrop,
   localDateKey,
   nextDropAfter,
   personalizeCard,
@@ -32,7 +33,10 @@ const close = () => (router.canGoBack() ? router.back() : router.replace('/'));
  */
 export default function Drop() {
   const now = useNow();
-  const drop = dropForDate(now);
+  // `?id=` opens a past Drop (from Me > Saved). Future Drops never open early.
+  const { id } = useLocalSearchParams<{ id?: string }>();
+  const picked = typeof id === 'string' ? getDrop(id) : null;
+  const drop = picked && picked.date <= localDateKey(now) ? picked : dropForDate(now);
   return drop ? <DropView key={drop.id} drop={drop} now={now} /> : <NoDropYet now={now} />;
 }
 

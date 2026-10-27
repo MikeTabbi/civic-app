@@ -15,6 +15,36 @@ Notifications.setNotificationHandler({
   }),
 });
 
+export type ReminderPermission = 'granted' | 'denied' | 'undetermined' | 'unsupported';
+
+/** Where notification permission stands. 'denied' means the phone won't ask again; only Settings can turn it on. */
+export async function reminderPermission(): Promise<ReminderPermission> {
+  if (Platform.OS === 'web') return 'unsupported';
+  const p = await Notifications.getPermissionsAsync();
+  if (p.granted) return 'granted';
+  return p.canAskAgain ? 'undetermined' : 'denied';
+}
+
+const REMINDER_OPTIONS: { key: keyof ReminderPrefs; title: string }[] = [
+  { key: 'earlyVoting', title: 'Early voting is open' },
+  { key: 'absenteeDeadline', title: 'Absentee application deadline' },
+  { key: 'dayBefore', title: 'Day before Election Day' },
+  { key: 'electionDay', title: 'Election Day morning' },
+];
+
+/** The reminder toggles still worth offering (their time hasn't passed), with when each would fire. */
+export function reminderChoices(now = new Date()) {
+  const everything: ReminderPrefs = { earlyVoting: true, absenteeDeadline: true, dayBefore: true, electionDay: true };
+  const available = plannedReminders(everything, now);
+  return REMINDER_OPTIONS.flatMap((o) => {
+    const date = available.find((r) => r.key === o.key)?.date;
+    return date ? [{ ...o, date }] : [];
+  });
+}
+
+export const formatReminderTime = (d: Date) =>
+  d.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+
 export async function requestNotificationPermission(): Promise<boolean> {
   if (Platform.OS === 'web') return false;
   const current = await Notifications.getPermissionsAsync();

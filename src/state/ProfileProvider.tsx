@@ -117,6 +117,19 @@ export function useProfile() {
   return ctx;
 }
 
+export const SCHOOLS = ['Delaware State University', 'Other school', 'Not in school'] as const;
+export type SchoolChoice = (typeof SCHOOLS)[number];
+
+/** Which of the three choices a saved `school` value maps to. */
+export const schoolChoiceOf = (school: string | null): SchoolChoice =>
+  school === 'Delaware State University' ? SCHOOLS[0] : school ? SCHOOLS[1] : SCHOOLS[2];
+
+/** The value saved for a choice. 'Other' lumps every other school together. */
+export const schoolFromChoice = (c: SchoolChoice) => (c === 'Not in school' ? null : c === 'Other school' ? 'Other' : c);
+
+/** The school as a line on the profile, or null when it isn't a named school. */
+export const schoolLine = (school: string | null) => (school && school !== 'Other' ? school : null);
+
 export const HANDLE_RE = /^[a-z0-9_]{3,24}$/;
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const isEduEmail = (e: string) => /\.edu$/i.test(e.trim());

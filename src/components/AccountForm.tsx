@@ -1,17 +1,13 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 
-
+import { SchoolPicker } from '@/components/SchoolPicker';
 import { SocialSignIn } from '@/components/SocialSignIn';
 import { Button, IconButton, Notice, Row, Screen, StepHeader, T, TextField, TextLink } from '@/components/ui';
 import { accountsEnabled, currentUser, sendEmailCode, verifyEmailCode, type SignedInUser } from '@/lib/auth';
-import { EMAIL_RE, HANDLE_RE, isEduEmail, useProfile } from '@/state/ProfileProvider';
+import { EMAIL_RE, HANDLE_RE, SCHOOLS, isEduEmail, schoolChoiceOf, schoolFromChoice, useProfile, type SchoolChoice } from '@/state/ProfileProvider';
 import { useSignOut } from '@/state/useSignOut';
-import { useTheme } from '@/theme/ThemeProvider';
-import { radius } from '@/theme/tokens';
-
-const SCHOOLS = ['Delaware State University', 'Other school', 'Not in school'] as const;
 
 /**
  * Who you are: name, handle, email sign-in, school.
@@ -19,14 +15,11 @@ const SCHOOLS = ['Delaware State University', 'Other school', 'Not in school'] a
  * After sign-in it saves the public profile, so a taken handle is caught here.
  */
 export function AccountForm({ mode = 'onboarding', onDone }: { mode?: 'onboarding' | 'signin'; onDone: () => void }) {
-  const { t } = useTheme();
   const { profile, update, syncProfile } = useProfile();
   const [name, setName] = useState(profile.name);
   const [handle, setHandle] = useState(profile.handle);
   const [email, setEmail] = useState(profile.email);
-  const [school, setSchool] = useState<(typeof SCHOOLS)[number]>(
-    profile.school === 'Delaware State University' ? SCHOOLS[0] : profile.school ? SCHOOLS[1] : SCHOOLS[2],
-  );
+  const [school, setSchool] = useState<SchoolChoice>(schoolChoiceOf(profile.school));
   const [schoolEmail, setSchoolEmail] = useState(profile.schoolEmail ?? '');
   const [showErrors, setShowErrors] = useState(false);
   const [stage, setStage] = useState<'form' | 'code'>('form');
@@ -63,7 +56,7 @@ export function AccountForm({ mode = 'onboarding', onDone }: { mode?: 'onboardin
     name: name.trim(),
     handle: cleanHandle,
     email: email.trim().toLowerCase(),
-    school: school === 'Not in school' ? null : school === 'Other school' ? 'Other' : school,
+    school: schoolFromChoice(school),
     schoolEmail: school !== 'Not in school' && schoolEmail.trim() ? schoolEmail.trim().toLowerCase() : null,
   };
 
@@ -213,30 +206,7 @@ export function AccountForm({ mode = 'onboarding', onDone }: { mode?: 'onboardin
       />
 
       <T variant="label">School</T>
-      <View style={{ gap: 8 }}>
-        {SCHOOLS.map((s) => {
-          const on = s === school;
-          return (
-            <Pressable
-              key={s}
-              accessibilityRole="radio"
-              accessibilityState={{ checked: on }}
-              onPress={() => setSchool(s)}
-              style={{
-                minHeight: 48,
-                paddingHorizontal: 16,
-                borderRadius: radius.md,
-                justifyContent: 'center',
-                backgroundColor: on ? t.accentTint : t.surface,
-                borderWidth: on ? 2 : 1,
-                borderColor: on ? t.accent : t.line,
-              }}
-            >
-              <T variant="label">{s}</T>
-            </Pressable>
-          );
-        })}
-      </View>
+      <SchoolPicker value={school} onChange={setSchool} />
       {school !== 'Not in school' ? (
         <TextField
           label="School email (optional)"

@@ -44,7 +44,18 @@ export async function upsertPlanStatus(hasPlan: boolean, share: boolean): Promis
   return error ? { ok: false, reason: 'error', message: error.message } : { ok: true };
 }
 
-export type StreakRow = { current: number; best: number; lastDay: string | null; optedIn: boolean };
+/**
+ * Deletes the account through the `delete-account` Edge Function (supabase/functions).
+ * The service key that can delete an auth user lives only on the server.
+ */
+export async function deleteMyAccount(): Promise<Result> {
+  const id = await myId();
+  if (!supabase || !id) return signedOut;
+  const { error } = await supabase.functions.invoke('delete-account', { method: 'POST' });
+  return error ? { ok: false, reason: 'error', message: error.message } : { ok: true };
+}
+
+export type StreakRow ={ current: number; best: number; lastDay: string | null; optedIn: boolean };
 
 export async function upsertStreak(s: StreakRow): Promise<Result> {
   const id = await myId();
