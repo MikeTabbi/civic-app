@@ -85,7 +85,7 @@ export function TabBar({ state, navigateToTab, insets }: BottomTabBarProps) {
             elevation: 7,
           }}
         >
-          <Ionicons name="flame" size={26} color={t.lime} />
+          <Ionicons name="flame" size={26} color={t.scheme === 'dark' ? t.primary.fg : t.lime} />
           {dropPending ? (
             <View
               style={{ position: 'absolute', top: 1, right: 1, width: 13, height: 13, borderRadius: 7, backgroundColor: t.lime, borderWidth: 2, borderColor: t.forest }}

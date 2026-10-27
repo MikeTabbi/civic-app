@@ -30,7 +30,6 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { fonts, radius } from '@/theme/tokens';
 
 const close = () => (router.canGoBack() ? router.back() : router.replace('/'));
-let swipeHintSeen = false;
 const lastWord = (value: string) => value.trim().split(/\s+/).at(-1)?.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '') || value;
 
 /**
@@ -96,7 +95,7 @@ function DropView({ drop, now }: { drop: DropData; now: Date }) {
   const [unlocked, setUnlocked] = useState<Milestone | null>(null);
   const [asking, setAsking] = useState(false);
   const [openError, setOpenError] = useState<string | null>(null);
-  const [showSwipeHint, setShowSwipeHint] = useState(!swipeHintSeen);
+  const [showSwipeHint, setShowSwipeHint] = useState(true);
 
   const total = drop.cards.length + 1;
   const onQuiz = index === drop.cards.length;
@@ -115,7 +114,6 @@ function DropView({ drop, now }: { drop: DropData; now: Date }) {
         onPanResponderRelease: (_, gesture) => {
           if (Math.abs(gesture.dx) < 48) return;
           go(gesture.dx < 0 ? 1 : -1);
-          swipeHintSeen = true;
           setShowSwipeHint(false);
         },
       }),

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   Animated as RNAnimated,
   Modal,
@@ -32,29 +32,19 @@ export function Sheet({
   const { t } = useTheme();
   const insets = useSafeAreaInsets();
   const reduceMotion = useReducedMotion();
-  const [mounted, setMounted] = useState(visible);
-  const translateY = useRef(new RNAnimated.Value(reduceMotion ? 0 : 36)).current;
-  const opacity = useRef(new RNAnimated.Value(0)).current;
+  const [translateY] = useState(() => new RNAnimated.Value(reduceMotion ? 0 : 36));
+  const [opacity] = useState(() => new RNAnimated.Value(0));
 
   useEffect(() => {
     if (visible) {
-      setMounted(true);
       opacity.setValue(0);
       translateY.setValue(reduceMotion ? 0 : 36);
       RNAnimated.parallel([
         RNAnimated.timing(opacity, { toValue: 1, duration: DURATION, useNativeDriver: true }),
         RNAnimated.timing(translateY, { toValue: 0, duration: reduceMotion ? 0 : DURATION, useNativeDriver: true }),
       ]).start();
-      return;
     }
-    if (!mounted) return;
-    RNAnimated.parallel([
-      RNAnimated.timing(opacity, { toValue: 0, duration: DURATION, useNativeDriver: true }),
-      RNAnimated.timing(translateY, { toValue: reduceMotion ? 0 : 36, duration: reduceMotion ? 0 : DURATION, useNativeDriver: true }),
-    ]).start(({ finished }) => {
-      if (finished) setMounted(false);
-    });
-  }, [mounted, opacity, reduceMotion, translateY, visible]);
+  }, [opacity, reduceMotion, translateY, visible]);
 
   const panResponder = useMemo(
     () =>
@@ -69,7 +59,7 @@ export function Sheet({
     [onClose, reduceMotion, translateY],
   );
 
-  if (!mounted) return null;
+  if (!visible) return null;
 
   return (
     <Modal transparent visible onRequestClose={onClose} animationType="none" statusBarTranslucent>

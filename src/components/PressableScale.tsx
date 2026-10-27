@@ -26,11 +26,11 @@ export function PressableScale({
       {...rest}
       disabled={disabled}
       onPressIn={(event) => {
-        if (!reduceMotion && !disabled) scale.value = withSpring(0.97, { duration: 160, dampingRatio: 0.85 });
+        if (!reduceMotion && !disabled) scale.set(withSpring(0.97, { duration: 160, dampingRatio: 0.85 }));
         onPressIn?.(event);
       }}
       onPressOut={(event) => {
-        if (!reduceMotion) scale.value = withSpring(1, { duration: 180, dampingRatio: 0.82 });
+        if (!reduceMotion) scale.set(withSpring(1, { duration: 180, dampingRatio: 0.82 }));
         onPressOut?.(event);
       }}
       style={[style, animatedStyle]}
