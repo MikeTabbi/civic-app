@@ -32,10 +32,8 @@ export function SocialSignIn({ onSignedIn }: { onSignedIn: (user: SignedInUser) 
     else if (!res.cancelled) setError(res.message);
   };
 
-  const dark = t.scheme === 'dark';
   const buttons: { id: OAuthProvider; label: string; icon: 'logo-apple' | 'logo-google'; bg: string; fg: string; border: string }[] = [
-    // Apple's guidelines: black button on light backgrounds, white on dark.
-    { id: 'apple', label: 'Continue with Apple', icon: 'logo-apple', bg: dark ? '#FFFFFF' : '#000000', fg: dark ? '#000000' : '#FFFFFF', border: 'transparent' },
+    { id: 'apple', label: 'Continue with Apple', icon: 'logo-apple', bg: t.text, fg: t.bg, border: 'transparent' },
     { id: 'google', label: 'Continue with Google', icon: 'logo-google', bg: t.surface, fg: t.text, border: t.line },
   ];
 

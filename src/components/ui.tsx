@@ -65,8 +65,8 @@ export function Row({ children, gap = space.sm, style }: { children: ReactNode; 
 type Variant = 'display' | 'title' | 'heading' | 'body' | 'label' | 'caption' | 'eyebrow';
 
 const variantStyle: Record<Variant, TextStyle> = {
-  display: { fontFamily: fonts.display, fontSize: 36, lineHeight: 38, letterSpacing: -1 },
-  title: { fontFamily: fonts.display, fontSize: 28, lineHeight: 32, letterSpacing: -0.6 },
+  display: { fontFamily: fonts.display, fontSize: 36, lineHeight: 38, letterSpacing: -1.26 },
+  title: { fontFamily: fonts.display, fontSize: 28, lineHeight: 32, letterSpacing: -0.98 },
   heading: { fontFamily: fonts.display, fontSize: 18, lineHeight: 22 },
   body: { fontFamily: fonts.bodyMedium, fontSize: 15, lineHeight: 21 },
   label: { fontFamily: fonts.bodySemi, fontSize: 14, lineHeight: 18 },
@@ -374,7 +374,7 @@ export function ToggleRow({
 }) {
   const { t } = useTheme();
   // react-native-web colors the "on" thumb with activeThumbColor (default teal) and ignores thumbColor there.
-  const webColors = Platform.OS === 'web' ? ({ activeThumbColor: '#FFFFFF', activeTrackColor: t.accent } as Partial<SwitchProps>) : null;
+  const webColors = Platform.OS === 'web' ? ({ activeThumbColor: t.text, activeTrackColor: t.accent } as Partial<SwitchProps>) : null;
   return (
     <Pressable
       accessibilityRole="switch"
@@ -391,7 +391,7 @@ export function ToggleRow({
         value={value}
         onValueChange={onValueChange}
         trackColor={{ false: t.empty, true: t.accent }}
-        thumbColor="#FFFFFF"
+        thumbColor={t.text}
         ios_backgroundColor={t.empty}
         {...webColors}
       />

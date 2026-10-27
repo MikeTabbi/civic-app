@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useColorScheme } from 'react-native';
 
-import { orangeDark, orangeLight, type ThemeTokens } from './tokens';
+import { civicDark, civicLight, type ThemeTokens } from './tokens';
 
 export type AppearancePref = 'system' | 'light' | 'dark';
 
@@ -30,7 +30,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const value = useMemo<ThemeContextValue>(() => {
     const resolved = appearance === 'system' ? (system === 'dark' ? 'dark' : 'light') : appearance;
     return {
-      t: resolved === 'dark' ? orangeDark : orangeLight,
+      t: resolved === 'dark' ? civicDark : civicLight,
       appearance,
       setAppearance: (pref) => {
         setAppearanceState(pref);
