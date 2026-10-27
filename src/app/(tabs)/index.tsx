@@ -87,12 +87,12 @@ export default function Ballot() {
           accessibilityRole="button"
           accessibilityLabel={`Next deadline: ${deadlines[0].title}. Open all deadlines.`}
           onPress={() => setDeadlinesOpen(true)}
-          style={{ minHeight: 54, flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: radius.pill, paddingHorizontal: 16, backgroundColor: t.surface, borderWidth: 1, borderColor: t.line }}
+          style={{ minHeight: 54, flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: radius.pill, paddingHorizontal: 16, paddingVertical: 10, backgroundColor: t.surface, borderWidth: 1, borderColor: t.line }}
         >
           <Ionicons name="time-outline" size={20} color={t.accentText} />
           <View style={{ flex: 1 }}>
             <T variant="caption" tone="faint">Next deadline</T>
-            <T variant="label" numberOfLines={1}>{deadlines[0].title} · {deadlines[0].detail}</T>
+            <T variant="label" numberOfLines={2}>{deadlines[0].title} · {deadlines[0].detail}</T>
           </View>
           <Ionicons name="chevron-up" size={18} color={t.faint} />
         </PressableScale>
@@ -183,17 +183,21 @@ function PlanHero() {
     when: { title: 'Pick a time to vote', accent: 'vote', button: 'Pick a time' },
   } as const;
   const copy = copyByStep[next?.id as keyof typeof copyByStep] ?? copyByStep.registered;
+  // Always a dark green card, so lime reads in both modes.
+  const light = t.scheme === 'light';
+  const cardBg = light ? t.primary.bg : t.forest;
+  const onCard = light ? '#FAF9F5' : t.text;
 
   return (
-    <View style={{ padding: 20, gap: 14, borderRadius: radius.xl, backgroundColor: t.primary.bg }}>
+    <View style={{ padding: 20, gap: 14, borderRadius: radius.xl, backgroundColor: cardBg }}>
       <Row style={{ justifyContent: 'space-between' }}>
-        <T variant="eyebrow" style={{ color: t.primary.fg }}>Next up</T>
-        <T variant="caption" style={{ color: t.primary.fg }}>{done} of {steps.length} plan steps done</T>
+        <T variant="eyebrow" style={{ color: t.lime }}>Next up</T>
+        <T variant="caption" style={{ color: t.lime }}>{done} of {steps.length} plan steps done</T>
       </Row>
-      <AccentHeading accent={complete ? 'set' : copy.accent} color={t.primary.fg} style={{ fontSize: 30, lineHeight: 33 }}>
+      <AccentHeading accent={complete ? 'set' : copy.accent} color={onCard} accentColor={t.lime} style={{ fontSize: 30, lineHeight: 33 }}>
         {complete ? 'Your plan is set' : copy.title}
       </AccentHeading>
-      <T style={{ color: t.scheme === 'light' ? t.bg : t.primary.fg }} numberOfLines={2}>
+      <T style={{ color: onCard }} numberOfLines={2}>
         {plan.shareWithSquad ? 'Private. Your squad only sees that your plan is ready.' : 'Your voting plan stays private and only you can see it.'}
       </T>
       <Animated.View entering={FadeIn.duration(220)} style={{ flexDirection: 'row', gap: 6 }}>
@@ -203,7 +207,7 @@ function PlanHero() {
       </Animated.View>
       {complete ? (
         <PressableScale accessibilityRole="link" onPress={() => router.push('/plan')} style={{ alignSelf: 'flex-start', minHeight: 44, justifyContent: 'center' }}>
-          <T variant="label" style={{ color: t.primary.fg, textDecorationLine: 'underline' }}>View your plan</T>
+          <T variant="label" style={{ color: t.lime, textDecorationLine: 'underline' }}>View your plan</T>
         </PressableScale>
       ) : (
         <PressableScale
@@ -212,7 +216,7 @@ function PlanHero() {
           onPress={() => router.push('/plan')}
           style={{ alignSelf: 'flex-start', minHeight: 44, borderRadius: radius.pill, paddingHorizontal: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: t.lime }}
         >
-          <T variant="label" style={{ color: t.forest }}>{copy.button}</T>
+          <T variant="label" style={{ color: '#203E35' }}>{copy.button}</T>
         </PressableScale>
       )}
     </View>

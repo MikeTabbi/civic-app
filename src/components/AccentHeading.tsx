@@ -8,11 +8,13 @@ export function AccentHeading({
   accent,
   style,
   color,
+  accentColor,
 }: {
   children: string;
   accent: string;
   style?: StyleProp<TextStyle>;
   color?: string;
+  accentColor?: string;
 }) {
   const { t } = useTheme();
   const index = children.toLocaleLowerCase().indexOf(accent.toLocaleLowerCase());
@@ -32,7 +34,7 @@ export function AccentHeading({
   return (
     <Text style={[shared, style]}>
       {before}
-      <Text style={{ fontFamily: fonts.serifItalic }}>{word}</Text>
+      <Text style={{ fontFamily: fonts.serifItalic, color: accentColor }}>{word}</Text>
       {after}
     </Text>
   );
