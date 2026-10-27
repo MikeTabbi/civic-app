@@ -63,7 +63,7 @@ export function Sheet({
         onPanResponderMove: (_, gesture) => translateY.setValue(Math.max(0, gesture.dy)),
         onPanResponderRelease: (_, gesture) => {
           if (gesture.dy > 90 || gesture.vy > 1) onClose();
-          else RNAnimated.spring(translateY, { toValue: 0, speed: 30, bounciness: 0, useNativeDriver: true }).start();
+          else RNAnimated.timing(translateY, { toValue: 0, duration: 180, useNativeDriver: true }).start();
         },
       }),
     [onClose, reduceMotion, translateY],

@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AccentHeading } from '@/components/AccentHeading';
 import { PressableScale } from '@/components/PressableScale';
 import { useReducedMotion } from '@/components/motion';
-import { Row, T, ToggleRow } from '@/components/ui';
+import { ProgressBar, Row, T, ToggleRow } from '@/components/ui';
 import { drops } from '@/data/drops';
 import { success } from '@/lib/haptics';
 import { BADGE_NAMES, MILESTONES, type Milestone } from '@/lib/streak';
@@ -71,9 +71,7 @@ export default function Celebrate() {
                 <T variant="label" style={{ color: t.drop.cardText }}>Next badge: {next} days</T>
                 <T variant="label" style={{ color: t.drop.cardMuted }}>{days} / {next}</T>
               </Row>
-              <View style={{ height: 8, overflow: 'hidden', borderRadius: 4, backgroundColor: t.empty }}>
-                <View style={{ width: `${Math.min(1, days / next) * 100}%`, height: 8, borderRadius: 4, backgroundColor: t.lime }} />
-              </View>
+              <ProgressBar value={days / next} color={t.lime} track={t.empty} />
               <T variant="caption" style={{ color: t.drop.cardMuted }}>
                 {needsMoreDrops(next) ? `${BADGE_NAMES[next]}: more Drops coming` : `${next - days} more ${next - days === 1 ? 'day' : 'days'} for ${BADGE_NAMES[next]}`}
               </T>

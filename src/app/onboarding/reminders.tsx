@@ -71,7 +71,7 @@ export default function Reminders() {
 
       <View style={{ flex: 1, minHeight: 8 }} />
       {denied ? (
-        <Button label="Continue without reminders" onPress={() => finish(false)} />
+          <Button label="Continue without reminders" kind="quiet" onPress={() => finish(false)} />
       ) : (
         <Button label="Turn on reminders" icon="notifications" onPress={turnOn} loading={busy} disabled={!options.length || !Object.values(prefs).some(Boolean)} />
       )}

@@ -9,7 +9,7 @@ import { PressableScale } from '@/components/PressableScale';
 import { Skeleton } from '@/components/Skeleton';
 import { ManageSquad } from '@/components/squad/ManageSquad';
 import { CreateSquadCard, JoinSquadCard } from '@/components/squad/SquadForms';
-import { Avatar, Button, Card, Notice, Row, Screen, Segmented, T, TextLink } from '@/components/ui';
+import { Avatar, Button, Card, Notice, ProgressBar, Row, Screen, Segmented, T, TextLink } from '@/components/ui';
 import { accountsEnabled } from '@/lib/auth';
 import { APP_NAME } from '@/lib/brand';
 import { confirm } from '@/lib/confirm';
@@ -213,9 +213,7 @@ function SquadDetail({ squad }: { squad: SquadT }) {
           <T variant="display" style={{ color: t.lime }}>{squad.withPlan}</T>
           <T variant="heading" style={{ color: t.lime }}> of {squad.members}</T>
         </Row>
-        <View style={{ height: 8, borderRadius: 4, overflow: 'hidden', backgroundColor: t.drop.track }}>
-          <View style={{ height: 8, width: `${Math.max(0, Math.min(1, pct)) * 100}%`, borderRadius: 4, backgroundColor: t.lime }} />
-        </View>
+        <ProgressBar value={pct} color={t.lime} track={t.drop.track} />
         <T variant="caption" style={{ color: t.lime }}>
           {squad.withPlan} of {squad.members} {squad.members === 1 ? 'has' : 'have'} a plan
         </T>

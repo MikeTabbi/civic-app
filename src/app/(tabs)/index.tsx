@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Linking, ScrollView, View } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { AccentHeading } from '@/components/AccentHeading';
 import { LevelGroup, type CivicLevel } from '@/components/LevelGroup';
@@ -73,10 +74,10 @@ export default function Ballot() {
           <T variant="eyebrow" tone="accent">General election · {formatDay(E.date)}</T>
           <AccentHeading accent="ballot">Your ballot</AccentHeading>
         </View>
-        <View style={{ alignItems: 'flex-end' }} accessible accessibilityLabel={days > 0 ? `${days} days until Election Day` : 'Election Day is today'}>
+        <Animated.View entering={FadeIn.duration(220)} style={{ alignItems: 'flex-end' }} accessible accessibilityLabel={days > 0 ? `${days} days until Election Day` : 'Election Day is today'}>
           <T variant="display" style={{ fontSize: 42, lineHeight: 42 }}>{days > 0 ? days : 'Today'}</T>
           {days > 0 ? <T variant="caption" tone="faint">days left</T> : null}
-        </View>
+        </Animated.View>
       </Row>
 
       <PlanHero />
@@ -105,7 +106,7 @@ export default function Ballot() {
               ? "We only have Delaware's ballot so far, so you're seeing Delaware's statewide races."
               : "You're seeing statewide races. Your address adds your State Senate, State House and county races. It stays private."}
           </T>
-          <Button label={outOfState ? 'Change address' : 'Add address'} icon="location" onPress={openAddress} />
+          <Button label={outOfState ? 'Change address' : 'Add address'} kind="quiet" icon="location" onPress={openAddress} />
         </View>
       ) : null}
 
@@ -195,13 +196,15 @@ function PlanHero() {
       <T style={{ color: t.scheme === 'light' ? t.bg : t.primary.fg }} numberOfLines={2}>
         {plan.shareWithSquad ? 'Private. Your squad only sees that your plan is ready.' : 'Your voting plan stays private and only you can see it.'}
       </T>
-      <View style={{ flexDirection: 'row', gap: 6 }}>
+      <Animated.View entering={FadeIn.duration(220)} style={{ flexDirection: 'row', gap: 6 }}>
         {steps.map((step) => (
           <View key={step.id} style={{ flex: 1, height: 7, borderRadius: 4, backgroundColor: step.done ? t.lime : t.drop.track }} />
         ))}
-      </View>
+      </Animated.View>
       {complete ? (
-        <TextLink label="View your plan" onPress={() => router.push('/plan')} />
+        <PressableScale accessibilityRole="link" onPress={() => router.push('/plan')} style={{ alignSelf: 'flex-start', minHeight: 44, justifyContent: 'center' }}>
+          <T variant="label" style={{ color: t.primary.fg, textDecorationLine: 'underline' }}>View your plan</T>
+        </PressableScale>
       ) : (
         <PressableScale
           accessibilityRole="button"

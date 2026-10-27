@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import type { ComponentProps, ReactElement, ReactNode } from 'react';
+import { useEffect, useRef, type ComponentProps, type ReactElement, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -18,11 +18,13 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { APP_SHORT_NAME } from '@/lib/brand';
 import { useTheme } from '@/theme/ThemeProvider';
 import { fonts, radius, space } from '@/theme/tokens';
+import { useReducedMotion } from './motion';
 import { PressableScale } from './PressableScale';
 
 export type IconName = ComponentProps<typeof Ionicons>['name'];
@@ -253,9 +255,21 @@ export function IconButton({
 
 export function ProgressBar({ value, color, track }: { value: number; color?: string; track?: string }) {
   const { t } = useTheme();
+  const reduceMotion = useReducedMotion();
+  const target = Math.max(0, Math.min(1, value));
+  const progress = useSharedValue(reduceMotion ? target : 0);
+  const animatedOnce = useRef(false);
+
+  useEffect(() => {
+    if (animatedOnce.current || reduceMotion) progress.value = target;
+    else progress.value = withTiming(target, { duration: 260 });
+    animatedOnce.current = true;
+  }, [progress, reduceMotion, target]);
+
+  const progressStyle = useAnimatedStyle(() => ({ transform: [{ scaleX: progress.value }] }));
   return (
     <View style={{ height: 8, borderRadius: 4, backgroundColor: track ?? t.empty, overflow: 'hidden' }}>
-      <View style={{ width: `${Math.max(0, Math.min(1, value)) * 100}%`, height: 8, borderRadius: 4, backgroundColor: color ?? t.accent }} />
+      <Animated.View style={[{ width: '100%', height: 8, borderRadius: 4, backgroundColor: color ?? t.accent, transformOrigin: 'left' }, progressStyle]} />
     </View>
   );
 }
